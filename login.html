@@ -1,0 +1,125 @@
+<html>
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.13.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.1.1/firebase-ui-auth__vi.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.1/firebase-ui-auth.css" />
+</head>
+<body>
+    <h1>Hello VSCode!</h1>
+    <div id="firebaseui-auth-container"></div>
+    <div id="user-signed-in" class="hidden">
+        <div id="user-info">
+            <div id="photo-container">
+                <img id="photo">
+            </div>
+            <div id="name"></div>
+            <div id="email"></div>
+            <div id="phone"></div>
+            <div id="is-new-user"></div>
+            <div class="clearfix"></div>
+        </div>
+        <p>
+            <button id="sign-out">Sign Out</button>
+            <button id="delete-account">Delete account</button>
+        </p>
+    </div>
+</body>
+
+<script>
+    const fbConfig = { // Firebase config
+        apiKey: 'AIzaSyD4WlWqGQ2vpr5avhOi5RigRvCBfetbisg',
+        authDomain: 'learn-firebase-6b3b4.firebaseapp.com',
+        projectId: 'learn-firebase-6b3b4',
+        storageBucket: 'learn-firebase-6b3b4.appspot.com',
+        messagingSenderId: '176093873193',
+        appId: '1:176093873193:web:2377cc57c19559d62e4838',
+        measurementId: 'G-39QLEL08ER'
+    };
+
+    firebase.initializeApp(fbConfig);
+    var ui = new firebaseui.auth.AuthUI(firebase.auth());
+    
+    const uiConfig = { // FirebaseUI config
+        'callbacks': {
+            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                if (window.opener) {
+                    // The widget has been opened in a popup, so close the window
+                    // and return false to not redirect the opener.
+                    window.close();
+                    return false;
+                } else {
+                    // The widget has been used in redirect mode, so we redirect to the signInSuccessUrl.
+                    return true;
+                }
+            }
+        },
+        signInFlow: 'popup',
+        signInOptions: [
+            {
+                provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                clientId: '176093873193-3qt2s61p5n8bl4mpoa79k7ml0bfc08be.apps.googleusercontent.com'
+            },
+            {
+                provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                signInMethod: 'password',
+                disableSignUp: {
+                    status: false
+                }
+            },
+            {
+                provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                recaptchaParameters: {
+                    size: 'invisible'
+                }
+            },
+            firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
+        ]
+    };
+
+    document.getElementById('sign-out').addEventListener('click', function() {
+        firebase.auth().signOut();
+        location.reload();
+    });
+
+    document.getElementById('delete-account').addEventListener('click', function() {
+        firebase.auth().currentUser.delete().catch(function(error) {
+            if (error.code == 'auth/requires-recent-login') {
+                // The user's credential is too old. She needs to sign in again.
+                firebase.auth().signOut().then(function() {
+                    // The timeout allows the message to be displayed after the UI has
+                    // changed to the signed out state.
+                    setTimeout(function() {
+                        alert('Please sign in again to delete your account.');
+                    }, 1);
+                });
+            }
+        });
+    });
+
+    window.addEventListener('load', function() {
+        firebase.auth().onAuthStateChanged(function (user) {
+            if (user == null) return ui.start('#firebaseui-auth-container', uiConfig);
+            document.getElementById('user-signed-in').style.display = 'block';
+            document.getElementById('firebaseui-auth-container').style.display = 'none';
+            document.getElementById('name').textContent = user.displayName;
+            document.getElementById('email').textContent = user.email;
+            document.getElementById('phone').textContent = user.phoneNumber;
+            if (user.photoURL) {
+                var photoURL = user.photoURL;
+                // Append size to the photo URL for Google hosted images to avoid requesting
+                // the image with its original resolution (using more bandwidth than needed)
+                // when it is going to be presented in smaller size.
+                if ((photoURL.indexOf('googleusercontent.com') != -1) ||
+                    (photoURL.indexOf('ggpht.com') != -1)) {
+                    photoURL = photoURL + '?sz=' + document.getElementById('photo').clientHeight;
+                }
+                document.getElementById('photo').src = photoURL;
+                document.getElementById('photo').style.display = 'block';
+            } else {
+                document.getElementById('photo').style.display = 'none';
+            }
+        });
+    });
+</script>
+</html>
