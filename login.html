@@ -6,7 +6,6 @@
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.1.1/firebase-ui-auth.css" />
 </head>
 <body>
-    <h1>Hello VSCode!</h1>
     <div id="firebaseui-auth-container"></div>
     <div id="user-signed-in" class="hidden">
         <div id="user-info">
@@ -26,18 +25,9 @@
     </div>
 </body>
 
+<script src="config.js"></script>
 <script>
-    const fbConfig = { // Firebase config
-        apiKey: 'AIzaSyD4WlWqGQ2vpr5avhOi5RigRvCBfetbisg',
-        authDomain: 'learn-firebase-6b3b4.firebaseapp.com',
-        projectId: 'learn-firebase-6b3b4',
-        storageBucket: 'learn-firebase-6b3b4.appspot.com',
-        messagingSenderId: '176093873193',
-        appId: '1:176093873193:web:2377cc57c19559d62e4838',
-        measurementId: 'G-39QLEL08ER'
-    };
-
-    firebase.initializeApp(fbConfig);
+    firebase.initializeApp(firebaseConfig);
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
     
     const uiConfig = { // FirebaseUI config
