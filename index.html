@@ -34,8 +34,8 @@
       </div>
 </body>
 <script type="module">
-    import {initializeApp} from './packages/firebase/firebase-app.js'
-    import {getAuth} from './packages/firebase/firebase-auth.js';
+    const {initializeApp} = await import(`${FIREBASE}/firebase-app.js`);
+    const {getAuth} = await import(`${FIREBASE}/firebase-auth.js`);
 
     const app = initializeApp(firebaseConfig);
     console.log(app)
