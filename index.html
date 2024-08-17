@@ -10,13 +10,27 @@
 </head>
 <body>
     <div class="col-lg-8 mx-auto p-3 py-md-5">
-        <header class="d-flex align-items-center pb-3 mb-5 border-bottom">
-            <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+        <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
+            <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
                 </svg>
                 <span class="fs-4">&nbsp; <small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark>Tree</mark></span>
             </a>
+            <div id="user-info" class="d-flex">
+                <div class="dropdown">
+                    <div type="button" data-bs-toggle="dropdown">
+                        <img id="user-photo" class="img-thumbnail" style="max-height:36px;display:none;">
+                        <div id="user-name"></div>
+                        <div id="user-email"></div>
+                        <div id="user-phone"></div>
+                    </div>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="javascript:signOut()">Sign Out</a></li>
+                    </ul>
+                </div>
+                <button id="sign-out" class="btn btn-light" onclick="signOut()" style="display:none;">Sign Out</button>
+            </div>
         </header>
       
         <main>
@@ -29,17 +43,52 @@
       
         </main>
         <footer class="pt-5 my-5 text-muted border-top">
-            Created by <em><mark>Duy_abu</mark></em> &middot; &copy; 2024
+            Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
       </div>
 </body>
 <script type="module">
-    const {initializeApp} = await import(`${FIREBASE}/firebase-app.js`);
-    const {getAuth} = await import(`${FIREBASE}/firebase-auth.js`);
+    async function loadModules() {
+        const {initializeApp} = await importFirebase('app');
+        const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        onAuthStateChanged(auth, (user) => {
+            if (user) window.user = user;
+            else window.location = './login.html';
+            dispatchEvent(new CustomEvent('user'));
+            window.signOut = async function() {
+                return signOut(auth);
+            }
+        })
+    }
+    window.addEventListener('load', async function() {
+        await loadModules();
+        dispatchEvent(new CustomEvent('init'));
+    });
+</script>
+<script>
+    window.addEventListener('user', function() {
+        if (window.user.photoURL) {
+            document.getElementById('user-photo').style.display = 'block';
+            document.getElementById('user-photo').src = window.user.photoURL;
+        } else if (window.user.displayName)
+            document.getElementById('user-name').textContent = window.user.displayName;
+        else if (window.user.email)
+            document.getElementById('user-email').textContent = window.user.email;
+        else if (window.user.phoneNumber)
+            document.getElementById('user-phone').textContent = window.user.phoneNumber;
+        else document.getElementById('sign-out').style.display = 'block';
+    });
 
-    const app = initializeApp(firebaseConfig);
-    console.log(app)
-    const auth = getAuth(app);
-    console.log(auth)
+    function signOut() {
+        alert('sign out')
+        window.signOut().then(() => {
+            location.reload();
+        }).catch((error) => {
+            alert(error.message);
+            console.log(error);
+        })
+    }
 </script>
 </html>

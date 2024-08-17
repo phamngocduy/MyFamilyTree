@@ -1,9 +1,7 @@
 <html>
 <head>
-    <script src="packages/firebase/firebase-app-compat.js"></script>
-    <script src="packages/firebase/firebase-auth-compat.js"></script>
-    <script src="packages/firebaseui/dist/firebaseui.js"></script>
     <link href="packages/firebaseui/dist/firebaseui.css" rel="stylesheet" />
+    <script src="config.js"></script>
 </head>
 <body>
     <div id="firebaseui-auth-container"></div>
@@ -24,8 +22,9 @@
         </p>
     </div>
 </body>
-
-<script src="config.js"></script>
+<script src="packages/firebase/firebase-app-compat.js"></script>
+<script src="packages/firebase/firebase-auth-compat.js"></script>
+<script src="packages/firebaseui/dist/firebaseui.js"></script>
 <script>
     firebase.initializeApp(firebaseConfig);
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
@@ -90,25 +89,7 @@
     window.addEventListener('load', function() {
         firebase.auth().onAuthStateChanged(function (user) {
             if (user == null) return ui.start('#firebaseui-auth-container', uiConfig);
-            document.getElementById('user-signed-in').style.display = 'block';
-            document.getElementById('firebaseui-auth-container').style.display = 'none';
-            document.getElementById('name').textContent = user.displayName;
-            document.getElementById('email').textContent = user.email;
-            document.getElementById('phone').textContent = user.phoneNumber;
-            if (user.photoURL) {
-                var photoURL = user.photoURL;
-                // Append size to the photo URL for Google hosted images to avoid requesting
-                // the image with its original resolution (using more bandwidth than needed)
-                // when it is going to be presented in smaller size.
-                if ((photoURL.indexOf('googleusercontent.com') != -1) ||
-                    (photoURL.indexOf('ggpht.com') != -1)) {
-                    photoURL = photoURL + '?sz=' + document.getElementById('photo').clientHeight;
-                }
-                document.getElementById('photo').src = photoURL;
-                document.getElementById('photo').style.display = 'block';
-            } else {
-                document.getElementById('photo').style.display = 'none';
-            }
+            window.location.replace('.')
         });
     });
 </script>
