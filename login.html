@@ -4,22 +4,8 @@
     <script src="config.js"></script>
 </head>
 <body>
-    <div id="firebaseui-auth-container"></div>
-    <div id="user-signed-in" class="hidden">
-        <div id="user-info">
-            <div id="photo-container">
-                <img id="photo">
-            </div>
-            <div id="name"></div>
-            <div id="email"></div>
-            <div id="phone"></div>
-            <div id="is-new-user"></div>
-            <div class="clearfix"></div>
-        </div>
-        <p>
-            <button id="sign-out">Sign Out</button>
-            <button id="delete-account">Delete account</button>
-        </p>
+    <div id="container" style="position:absolute;top:10%;left:0;right:0;">
+        <div id="firebaseui-auth"></div>
     </div>
 </body>
 <script src="packages/firebase/firebase-app-compat.js"></script>
@@ -62,34 +48,16 @@
                     size: 'invisible'
                 }
             },
-            firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID
+            firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID,
+            'yahoo.com'
         ]
     };
 
-    document.getElementById('sign-out').addEventListener('click', function() {
-        firebase.auth().signOut();
-        location.reload();
-    });
-
-    document.getElementById('delete-account').addEventListener('click', function() {
-        firebase.auth().currentUser.delete().catch(function(error) {
-            if (error.code == 'auth/requires-recent-login') {
-                // The user's credential is too old. She needs to sign in again.
-                firebase.auth().signOut().then(function() {
-                    // The timeout allows the message to be displayed after the UI has
-                    // changed to the signed out state.
-                    setTimeout(function() {
-                        alert('Please sign in again to delete your account.');
-                    }, 1);
-                });
-            }
-        });
-    });
-
     window.addEventListener('load', function() {
         firebase.auth().onAuthStateChanged(function (user) {
-            if (user == null) return ui.start('#firebaseui-auth-container', uiConfig);
-            window.location.replace('.')
+            if (user == null)
+                return ui.start('#firebaseui-auth', uiConfig);
+            else window.location.replace('.');
         });
     });
 </script>
