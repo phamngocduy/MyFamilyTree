@@ -9,13 +9,18 @@
     <script src="config.js"></script>
 </head>
 <body>
+    <div class="spiner bg-white opacity-25 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;">
+    </div>
     <div class="col-lg-8 mx-auto p-3 py-md-5">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
                     <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
                 </svg>
-                <span class="fs-4">&nbsp; <small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark>Tree</mark></span>
+                <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark>Tree</mark></span>
+                <div class="spiner spinner-border text-info ms-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
             </a>
             <div id="user-info" class="d-flex">
                 <div class="dropdown">
@@ -58,7 +63,10 @@
             else window.location = './login.html';
             dispatchEvent(new CustomEvent('user'));
             window.signOut = async function() {
-                return signOut(auth);
+                return signOut(auth).catch((error) => {
+                    console.log(error);
+                    alert(error.message);
+                })
             }
         })
     }
@@ -68,6 +76,12 @@
     });
 </script>
 <script>
+    window.addEventListener('init', function() {
+        Array.from(document.getElementsByClassName('spiner')).forEach((spiner) => {
+            spiner.style.display = 'none';
+        })
+    })
+
     window.addEventListener('user', function() {
         if (window.user.photoURL) {
             document.getElementById('user-photo').style.display = 'block';
@@ -80,15 +94,5 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
     });
-
-    function signOut() {
-        alert('sign out')
-        window.signOut().then(() => {
-            location.reload();
-        }).catch((error) => {
-            alert(error.message);
-            console.log(error);
-        })
-    }
 </script>
 </html>
