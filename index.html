@@ -56,6 +56,8 @@
     async function loadModules() {
         const {initializeApp} = await importFirebase('app');
         const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
+        const {getFirestore, collection, addDoc, getDocs, query, where} = await importFirebase('firestore');
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         onAuthStateChanged(auth, (user) => {
@@ -64,16 +66,43 @@
             dispatchEvent(new CustomEvent('user'));
             window.signOut = async function() {
                 return signOut(auth).catch((error) => {
-                    console.log(error);
+                    console.error(error);
                     alert(error.message);
                 })
             }
+            if (user) initMember(user);
         })
+
+        const db = getFirestore(app);
+        db.addDoc = async function(group, json) {
+            return await addDoc(collection(db, group), json);
+        }
+        db.getDocs = async function(group, field, operator, value) {
+            return await getDocs(query(collection(db, group), where(field, operator, value)));
+        }
+        window.db = db
     }
     window.addEventListener('load', async function() {
         await loadModules();
         dispatchEvent(new CustomEvent('init'));
     });
+    async function initMember(user) {
+        try {
+            const members = await db.getDocs('members', 'userid', '==', user.uid);
+            if (members.size) {
+                window.member = members.docs[0].data();
+            } else {
+                await db.addDoc('members', {
+                    userid: user.uid,
+                    fullname: user.displayName ?? 'Anonymous'
+                })
+                await initMember(user);
+            }
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
 </script>
 <script>
     window.addEventListener('init', function() {
