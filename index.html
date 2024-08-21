@@ -105,11 +105,14 @@
     }
 </script>
 <script>
-    window.addEventListener('init', function() {
+    function blockUI(state) {
         Array.from(document.getElementsByClassName('spiner')).forEach((spiner) => {
-            spiner.style.display = 'none';
+            spiner.style.display = state ? 'block' : 'none';
         })
-    })
+    }
+</script>
+<script>
+    window.addEventListener('init', () => blockUI(false));
 
     window.addEventListener('user', function() {
         if (window.user.photoURL) {

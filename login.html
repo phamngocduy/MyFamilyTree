@@ -16,19 +16,6 @@
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
     
     const uiConfig = { // FirebaseUI config
-        'callbacks': {
-            signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                if (window.opener) {
-                    // The widget has been opened in a popup, so close the window
-                    // and return false to not redirect the opener.
-                    window.close();
-                    return false;
-                } else {
-                    // The widget has been used in redirect mode, so we redirect to the signInSuccessUrl.
-                    return true;
-                }
-            }
-        },
         signInFlow: 'popup',
         signInOptions: [
             {
@@ -57,7 +44,7 @@
         firebase.auth().onAuthStateChanged(function (user) {
             if (user == null)
                 return ui.start('#firebaseui-auth', uiConfig);
-            else window.location.replace('.');
+            else window.location.replace(`.?q=${user.uid}`);
         });
     });
 </script>
