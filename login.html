@@ -44,7 +44,7 @@
         firebase.auth().onAuthStateChanged(function (user) {
             if (user == null)
                 return ui.start('#firebaseui-auth', uiConfig);
-            else window.location.replace(`.?q=${user.uid}`);
+            else window.location.replace('.');
         });
     });
 </script>

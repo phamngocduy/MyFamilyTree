@@ -64,13 +64,7 @@
             if (user) window.user = user;
             else window.location = './login.html';
             dispatchEvent(new CustomEvent('user'));
-            window.signOut = async function() {
-                return signOut(auth).catch((error) => {
-                    console.error(error);
-                    alert(error.message);
-                })
-            }
-            if (user) initMember(user);
+            window.signOut = () => abide(signOut(auth));
         })
 
         const db = getFirestore(app);
@@ -83,8 +77,8 @@
         window.db = db
     }
     window.addEventListener('load', async function() {
-        await loadModules();
-        dispatchEvent(new CustomEvent('init'));
+        //loadModules().then(() => dispatchEvent(new CustomEvent('init')));
+        abide(loadModules(), () => dispatchEvent(new CustomEvent('init')));
     });
     async function initMember(user) {
         try {
@@ -110,6 +104,16 @@
             spiner.style.display = state ? 'block' : 'none';
         })
     }
+    function abide(promise, callback) {
+        blockUI(true);
+        promise.then((value) => {
+            if (callback)
+                callback(value)
+        }).catch((error) => {
+            console.error(error);
+            alert(error.message);
+        }).finally(() => blockUI(false));
+    }
 </script>
 <script>
     window.addEventListener('init', () => blockUI(false));
@@ -125,6 +129,8 @@
         else if (window.user.phoneNumber)
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
+
+        //blockUI(true);
     });
 </script>
 </html>
