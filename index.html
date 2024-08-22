@@ -39,13 +39,15 @@
         </header>
       
         <main>
-            <h1>Get started with Bootstrap</h1>
-            <p class="fs-5 col-md-8">Quickly and easily get started with Bootstrap's compiled, production-ready files with this barebones example featuring some basic HTML and helpful links. Download all our examples to get started.</p>
-        
-            <div class="mb-5">
-                <a href="/docs/5.0/examples/" class="btn btn-primary btn-lg px-4">Download examples</a>
-            </div>
-      
+            <ul class="list-group">
+                <a href="#" id="member" class="list-group-item list-group-item-action active">
+                    The current link item
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">A second link item</a>
+                <a href="#" class="list-group-item list-group-item-action">A third link item</a>
+                <a href="#" class="list-group-item list-group-item-action">A fourth link item</a>
+                <a class="list-group-item list-group-item-action disabled">A disabled link item</a>
+            </ul>
         </main>
         <footer class="pt-5 my-5 text-muted border-top">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
@@ -56,7 +58,7 @@
     async function loadModules() {
         const {initializeApp} = await importFirebase('app');
         const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-        const {getFirestore, collection, addDoc, getDocs, query, where} = await importFirebase('firestore');
+        const {getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where} = await importFirebase('firestore');
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -71,6 +73,9 @@
         db.addDoc = async function(group, json) {
             return await addDoc(collection(db, group), json);
         }
+        db.getDoc = async function(group, id) {
+            return await getDoc(doc(db, group, id));
+        }
         db.getDocs = async function(group, field, operator, value) {
             return await getDocs(query(collection(db, group), where(field, operator, value)));
         }
@@ -80,29 +85,12 @@
         //loadModules().then(() => dispatchEvent(new CustomEvent('init')));
         abide(loadModules(), () => dispatchEvent(new CustomEvent('init')));
     });
-    async function initMember(user) {
-        try {
-            const members = await db.getDocs('members', 'userid', '==', user.uid);
-            if (members.size) {
-                window.member = members.docs[0].data();
-            } else {
-                await db.addDoc('members', {
-                    userid: user.uid,
-                    fullname: user.displayName ?? 'Anonymous'
-                })
-                await initMember(user);
-            }
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
-    }
 </script>
 <script>
     function blockUI(state) {
         Array.from(document.getElementsByClassName('spiner')).forEach((spiner) => {
             spiner.style.display = state ? 'block' : 'none';
-        })
+        });
     }
     function abide(promise, callback) {
         blockUI(true);
@@ -113,6 +101,24 @@
             console.error(error);
             alert(error.message);
         }).finally(() => blockUI(false));
+    }
+    async function loadMember() {
+        const query = new URL(window.location).searchParams.get('q');
+        if (query) {
+            member = await window.db.getDoc('members', query);
+            window.member = member.data();
+        } else {
+            const members = await window.db.getDocs('members', 'userid', '==', window.user.uid);
+            if (members.size) {
+                window.location = `?q=${members.docs[0].id}`;
+            } else {
+                const docRef = await db.addDoc('members', {
+                    userid: user.uid,
+                    fullname: user.displayName ?? 'Anonymous'
+                });
+                window.location = `?q=${docRef.id}`;
+            }
+        }
     }
 </script>
 <script>
@@ -130,7 +136,9 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        //blockUI(true);
+        abide(loadMember(), () => {
+            document.getElementById('member').textContent = window.member.fullname;
+        });
     });
 </script>
 </html>
