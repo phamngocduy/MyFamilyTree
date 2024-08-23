@@ -2,6 +2,7 @@
   "dependencies": {
     "bootstrap": "^5.3.3",
     "firebase": "^10.12.5",
-    "firebaseui": "^6.1.0"
+    "firebaseui": "^6.1.0",
+    "vue": "^3.4.38"
   }
 }

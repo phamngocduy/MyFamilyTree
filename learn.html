@@ -1,0 +1,16 @@
+<body>
+    <div id="app">
+        <h1>{{message}}</h1>
+    </div>
+</body>
+<script src="packages/vue/dist/vue.global.prod.js"></script>
+<script>
+    const {createApp} = Vue;
+    const app = createApp({
+        data() {
+            return {
+                message: 'Hello VueJS'
+            }
+        }
+    }).mount('#app')
+</script>

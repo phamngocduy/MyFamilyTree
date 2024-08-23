@@ -6,10 +6,11 @@
     <title>My Family Tree</title>
     <link href="packages/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="packages/vue/dist/vue.global.prod.js"></script>
     <script src="config.js"></script>
 </head>
 <body>
-    <div class="spiner bg-white opacity-25 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;">
+    <div class="spiner bg-white opacity-50 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;z-index:2000;">
     </div>
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
@@ -37,15 +38,26 @@
                 <button id="sign-out" class="btn btn-light" onclick="signOut()" style="display:none;">Sign Out</button>
             </div>
         </header>
-        <main>
+        <main id="app">
             <ul class="list-group">
-                <a href="#" id="member" class="list-group-item list-group-item-action active">
-                    The current link item
+                <a href="#" class="list-group-item list-group-item-action">
+                    Thêm cha mẹ
                 </a>
-                <a href="#" class="list-group-item list-group-item-action">A second link item</a>
-                <a href="#" class="list-group-item list-group-item-action">A third link item</a>
-                <a href="#" class="list-group-item list-group-item-action">A fourth link item</a>
-                <a class="list-group-item list-group-item-action disabled">A disabled link item</a>
+                <div class="list-group-item ps-5">
+                    <ul class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action active">
+                            <span>{{member.fullname}}</span>
+                            <button onclick="alert('aa')">edit</button>
+                        </a>
+                        <div class="list-group-item ps-5">
+                            <ul class="list-group">
+                                <a href="#" class="list-group-item list-group-item-action">Thêm con cái</a>
+                            </ul>
+                        </div>
+                        <a href="#" class="list-group-item list-group-item-action">Thêm anh em</a>
+                    </ul>
+                </div>
+                <a href="#" class="list-group-item list-group-item-action">Thêm bà con</a>
             </ul>
         </main>
         <footer class="pt-5 my-5 text-muted border-top mt-auto">
@@ -121,7 +133,17 @@
     }
 </script>
 <script>
-    window.addEventListener('init', () => blockUI(false));
+    window.addEventListener('init', function() {
+        const {createApp} = Vue;
+        window.app = createApp({
+            data() {
+                return {
+                    member: {}
+                }
+            }
+        }).mount('#app');
+        blockUI(false);
+    });
 
     window.addEventListener('user', function() {
         if (window.user.photoURL) {
@@ -136,7 +158,7 @@
         else document.getElementById('sign-out').style.display = 'block';
 
         abide(loadMember(), () => {
-            document.getElementById('member').textContent = window.member.fullname;
+            window.app.member = window.member;
         });
     });
 </script>
