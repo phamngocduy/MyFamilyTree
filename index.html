@@ -11,7 +11,7 @@
 <body>
     <div class="spiner bg-white opacity-25 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;">
     </div>
-    <div class="col-lg-8 mx-auto p-3 py-md-5">
+    <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
@@ -37,7 +37,6 @@
                 <button id="sign-out" class="btn btn-light" onclick="signOut()" style="display:none;">Sign Out</button>
             </div>
         </header>
-      
         <main>
             <ul class="list-group">
                 <a href="#" id="member" class="list-group-item list-group-item-action active">
@@ -49,7 +48,7 @@
                 <a class="list-group-item list-group-item-action disabled">A disabled link item</a>
             </ul>
         </main>
-        <footer class="pt-5 my-5 text-muted border-top">
+        <footer class="pt-5 my-5 text-muted border-top mt-auto">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
       </div>
