@@ -15,9 +15,7 @@
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
-                    <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
-                </svg>
+                <img src="packages/bootstrap-icons/icons/people.svg" width="32" height="32">
                 <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark>Tree</mark></span>
                 <div class="spiner spinner-border text-info ms-3" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -46,8 +44,8 @@
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
                         <a href="#" class="list-group-item list-group-item-action active">
-                            <span>{{member.fullname}}</span>
-                            <button onclick="alert('aa')">edit</button>
+                            <span>{{member.fullname}}</span>&nbsp;
+                            <img src="packages/bootstrap-icons/icons/pencil.svg" onclick="editMember()" data-bs-toggle="modal" data-bs-target="#modal">
                         </a>
                         <div class="list-group-item ps-5">
                             <ul class="list-group">
@@ -60,6 +58,22 @@
                 <a href="#" class="list-group-item list-group-item-action">Thêm bà con</a>
             </ul>
         </main>
+        <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="form-floating">
+                            <input type="text" :value="member.fullname" class="form-control" placeholder="">
+                            <label>Họ tên đầy đủ</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" @click="save" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <footer class="pt-5 my-5 text-muted border-top mt-auto">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
@@ -117,7 +131,7 @@
         const query = new URL(window.location).searchParams.get('q');
         if (query) {
             member = await window.db.getDoc('members', query);
-            window.member = member.data();
+            window.member = {id: member.id, ...member.data()};
         } else {
             const members = await window.db.getDocs('members', 'userid', '==', window.user.uid);
             if (members.size) {
@@ -144,6 +158,22 @@
         }).mount('#app');
         blockUI(false);
     });
+
+    function editMember() {
+        const {createApp} = Vue;
+        createApp({
+            data() {
+                return {
+                    member: window.member
+                }
+            },
+            methods: {
+                save() {
+                    console.log(this.member)
+                }
+            }
+        }).mount('#modal');
+    }
 
     window.addEventListener('user', function() {
         if (window.user.photoURL) {
