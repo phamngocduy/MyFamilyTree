@@ -1,15 +1,17 @@
 <body>
     <div id="app">
-        <h1>{{message}}</h1>
+        <input v-model="text" placeholder="Type here">
+        <p>{{ text }}</p>
     </div>
 </body>
 <script src="packages/vue/dist/vue.global.prod.js"></script>
 <script>
+    var message = 'heelo'
     const {createApp} = Vue;
     const app = createApp({
         data() {
             return {
-                message: 'Hello VueJS'
+                text: message
             }
         }
     }).mount('#app')
