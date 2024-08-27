@@ -70,10 +70,60 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <div class="form-floating">
-                            <input type="text" v-model.trim="member.fullname" class="form-control" placeholder="">
-                            <label>Họ và tên (tên khác 1, 2)</label>
-                        </div>
+                        <form class="row g-2">
+                            <div class="col-8">
+                                <div class="form-floating">
+                                    <input type="text" v-model.trim="member.fullname" class="form-control" placeholder="">
+                                    <label>Họ và tên</label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" placeholder="">
+                                    <label>Tên gọi khác</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <input type="tel" class="form-control" placeholder="Số điện thoại">
+                            </div>
+                            <div class="col-6">
+                                <input type="email" class="form-control" placeholder="Địa chỉ email">
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">Sinh năm</span>
+                                    <input type="text" class="form-control" placeholder="ngày/tháng/năm">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">tại</span>
+                                    <input type="text" class="form-control" placeholder="địa phương...">
+                                    <span>&nbsp;</span>
+                                    <img src="packages/bootstrap-icons/icons/calendar2-plus.svg"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseDeath" role="button">
+                                </div>
+                            </div>
+                            <div class="col-6 collapse" id="collapseDeath">
+                                <div class="input-group">
+                                    <span class="input-group-text">Mất ngày</span>
+                                    <input type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-6 collapse" id="collapseDeath">
+                                <div class="input-group">
+                                    <span class="input-group-text">tại</span>
+                                    <input type="text" class="form-control">
+                                    <span>&nbsp;</span>
+                                    <input type="checkbox" id="btn-lunar" class="btn-check" checked autocomplete="off">
+                                    <label class="btn" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Tiểu sử</label>
+                                <textarea class="form-control" rows="5"></textarea>
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
