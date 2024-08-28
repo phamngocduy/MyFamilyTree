@@ -48,6 +48,7 @@
                             <img src="packages/bootstrap-icons/icons/pencil.svg" onclick="editMember()" data-bs-toggle="modal" data-bs-target="#modal">
                             <span>&nbsp; – &nbsp;</span>
                             <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
+                            <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
                         <div class="list-group-item ps-5">
                             <ul class="list-group">
@@ -92,13 +93,13 @@
                             <div class="col-6">
                                 <div class="input-group">
                                     <span class="input-group-text">Sinh năm</span>
-                                    <input type="text" class="form-control" placeholder="ngày/tháng/năm">
+                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm">
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="input-group">
                                     <span class="input-group-text">tại</span>
-                                    <input type="text" class="form-control" placeholder="địa phương...">
+                                    <input type="text" v-model.trim="member.birthplace" class="form-control" placeholder="địa phương...">
                                     <span>&nbsp;</span>
                                     <img src="packages/bootstrap-icons/icons/calendar2-plus.svg"
                                     data-bs-toggle="collapse" data-bs-target="#collapseDeath" role="button">
@@ -120,14 +121,39 @@
                                 </div>
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Tiểu sử</label>
-                                <textarea class="form-control" rows="5"></textarea>
+                                <input type="text" class="form-control" placeholder="Nơi ở hiện tại">
                             </div>
+                            <div class="col-4">
+                                <label class="form-label">Tiểu sử</label>
+                                <input type="text" class="form-control" placeholder="Thời gian">
+                            </div>
+                            <div class="col-8">
+                                <label class="form-label float-end" type="button">
+                                    <img src="packages/bootstrap-icons/icons/save.svg">
+                                </label>
+                                <input type="text" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc...">
+                            </div>
+                            <table class="table table-hover table-striped">
+                                <tbody>
+                                    <tr v-show="member.birthday && member.birthplace">
+                                        <td>{{member.birthday}}</td>
+                                        <td>Sinh ra tại {{member.birthplace}}.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>dd/mm/yyyy</td>
+                                        <td>Thông tin sự kiện học tập & làm việc...</td>
+                                    </tr>
+                                    <tr>
+                                        <td>dd/mm/yyyy</td>
+                                        <td>Thông tin sự kiện học tập & làm việc...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" @click="save" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" @click="save" class="btn btn-primary">Lưu thông tin</button>
                     </div>
                 </div>
             </div>
@@ -165,8 +191,8 @@
         window.db = db
     }
     window.addEventListener('load', async function() {
-        //loadModules().then(() => dispatchEvent(new CustomEvent('init')));
-        abide(loadModules(), () => dispatchEvent(new CustomEvent('init')));
+        //loadModules().then(() => window.dispatchEvent(new CustomEvent('init')));
+        abide(loadModules(), () => window.dispatchEvent(new CustomEvent('init')));
     });
 </script>
 <script>
@@ -230,6 +256,7 @@
             }
         }).mount('#modal');
         blockUI(false);
+        document.getElementById('showModal').click()
     });
 
     function editMember() {
