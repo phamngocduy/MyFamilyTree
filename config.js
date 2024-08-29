@@ -14,3 +14,5 @@ const FIREBASE = 'https://www.gstatic.com/firebasejs/10.12.5';
 async function importFirebase(lib) {
     return await import(`${FIREBASE}/firebase-${lib}.js`);
 }
+
+DATE_PATTERN = '((0?[1-9]|1[0-9]|2[0-9]|3[01])/(0?[1-9]|1[012])/[0-9]{4})|((0[1-9]|1[012])/[0-9]{4})|[0-9]{4}';
