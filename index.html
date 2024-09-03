@@ -93,7 +93,7 @@
                             <div class="col-6">
                                 <div class="input-group">
                                     <span class="input-group-text">Sinh năm</span>
-                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN">
+                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN" required>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -108,7 +108,7 @@
                             <div class="col-6 collapse" id="collapseDeath">
                                 <div class="input-group">
                                     <span class="input-group-text">Mất ngày</span>
-                                    <input type="text" class="form-control">
+                                    <input type="text" class="form-control" :pattern="DATE_PATTERN" required>
                                 </div>
                             </div>
                             <div class="col-6 collapse" id="collapseDeath">
@@ -127,24 +127,24 @@
                         <form id="history" class="row g-2">
                             <div class="col-4">
                                 <label class="form-label">Tiểu sử</label>
-                                <input type="text" v-model.trim="event_date" class="form-control" placeholder="Thời gian" :pattern="DATE_PATTERN">
+                                <input type="text" v-model.trim="event_date" class="form-control" placeholder="Thời gian" :pattern="DATE_PATTERN" required>
                             </div>
                             <div class="col-8">
                                 <label class="form-label float-end" type="button">
-                                    <img src="packages/bootstrap-icons/icons/x-circle.svg" onclick="document.forms['history'].reset()" v-show="event_date || event_details">
+                                    <img src="packages/bootstrap-icons/icons/x-circle.svg" @click="clsEvent()" v-show="event_date || event_details">
                                     <span>&nbsp;&nbsp;&nbsp;</span>
                                     <img src="packages/bootstrap-icons/icons/save.svg" @click="addEvent()" v-show="event_date && event_details">
                                 </label>
-                                <input type="text" v-model.trim="event_details" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
+                                <input type="text" v-model.trim="event_details" v-on:keyup.enter="addEvent()" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
                             </div>
                         </form>
-                        <table class="table table-hover table-striped">
+                        <table class="table table-hover table-stripe">
                             <tbody>
                                 <tr v-show="member.birthday">
                                     <td>{{member.birthday}}</td>
                                     <td>Sinh năm {{toCanChi(member.birthday)}} tại {{member.birthplace}}.</td>
                                 </tr>
-                                <tr v-for="(event, id) in member.history">
+                                <tr v-for="(event, id) in sortHistory">
                                     <td>{{event.date}}</td>
                                     <td>{{event.details}}</td>
                                 </tr>
@@ -233,7 +233,7 @@
 <script>
     window.addEventListener('init', function() {
         const {createApp} = Vue;
-        window.app = createApp({
+        window.xApp = createApp({
             data() {
                 return {
                     family: {
@@ -241,20 +241,26 @@
                     }
                 }
             }
-        }).mount('#app');
-        window.vue = createApp({
+        }).mount('main');
+
+        window.eApp = createApp({
             data() {
                 return {
                     member: {
-                        history: [
-                            {date: 'dd/mm/yyyy', details: 'Thông tin sự kiện học tập & làm việc...'},
-                            {date: 'dd/mm/yyyy', details: 'Thông tin sự kiện học tập & làm việc...'}
-                        ]
+                        history: []
                     },
                     event_date: undefined,
                     event_details: undefined,
                     DATE_PATTERN: DATE_PATTERN
                 }
+            },
+            computed: {
+                sortHistory() {
+                    return this.member.history.sort(
+                        (a, b) => a.timestamp - b.timestamp
+                    );
+                }
+
             },
             methods: {
                 save(event) {
@@ -266,10 +272,14 @@
                     if (history.reportValidity()) {
                         this.member.history.push({
                             date: this.event_date,
-                            details: this.event_details
+                            details: this.event_details,
+                            timestamp: Date.parse(this.event_date.split('/').reverse().join('-'))
                         });
-                        history.reset();
+                        this.clsEvent();
                     }
+                },
+                clsEvent() {
+                    this.event_date = this.event_details = undefined;
                 },
                 toCanChi(date) {
                     const CAN = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
@@ -286,7 +296,7 @@
     });
 
     function editMember() {
-        vue.member = {...app.family.member}
+        window.eApp.member = {...window.xApp.family.member}
     }
 
     window.addEventListener('user', function() {
@@ -302,7 +312,7 @@
         else document.getElementById('sign-out').style.display = 'block';
 
         abide(loadMember(), (member) => {
-            window.app.family.member = member;
+            window.xApp.family.member = member;
         });
     });
 </script>
