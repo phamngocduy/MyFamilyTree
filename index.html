@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My Family Tree</title>
     <link href="packages/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.prod.js"></script>
     <script src="config.js"></script>
@@ -101,8 +102,8 @@
                                     <span class="input-group-text">tại</span>
                                     <input type="text" v-model.trim="member.birthplace" class="form-control" placeholder="địa phương...">
                                     <span>&nbsp;</span>
-                                    <img src="packages/bootstrap-icons/icons/calendar2-plus.svg"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseDeath" role="button">
+                                    <i data-bs-toggle="collapse" data-bs-target="#collapseDeath"
+                                    type="button" class="bi-calendar2-plus float-end text-primary"></i>
                                 </div>
                             </div>
                             <div class="col-6 collapse" id="collapseDeath">
@@ -117,7 +118,7 @@
                                     <input type="text" class="form-control">
                                     <span>&nbsp;</span>
                                     <input type="checkbox" id="btn-lunar" class="btn-check" checked autocomplete="off">
-                                    <label class="btn" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
+                                    <label class="btn btn-outline-warning" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -145,8 +146,11 @@
                                     <td>Sinh năm {{toCanChi(member.birthday)}} tại {{member.birthplace}}.</td>
                                 </tr>
                                 <tr v-for="(event, id) in sortHistory">
-                                    <td>{{event.date}}</td>
-                                    <td>{{event.details}}</td>
+                                    <td>{{event.date}}
+                                    </td>
+                                    <td>{{event.details}}
+                                        <i type="button" class="bi-x-lg float-end text-danger"></i>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -247,7 +251,9 @@
             data() {
                 return {
                     member: {
-                        history: []
+                        history: [
+                            {date: '1992', details: 'test thong tin'}
+                        ]
                     },
                     event_date: undefined,
                     event_details: undefined,
@@ -257,7 +263,7 @@
             computed: {
                 sortHistory() {
                     return this.member.history.sort(
-                        (a, b) => a.timestamp - b.timestamp
+                        (a, b) => this.parseDate(a.date) - this.parseDate(b.date)
                     );
                 }
 
@@ -272,8 +278,7 @@
                     if (history.reportValidity()) {
                         this.member.history.push({
                             date: this.event_date,
-                            details: this.event_details,
-                            timestamp: Date.parse(this.event_date.split('/').reverse().join('-'))
+                            details: this.event_details
                         });
                         this.clsEvent();
                     }
@@ -281,13 +286,16 @@
                 clsEvent() {
                     this.event_date = this.event_details = undefined;
                 },
-                toCanChi(date) {
+                toCanChi(ddmmyyyy) {
                     const CAN = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
                     const CHI = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mẹo', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'];
                     try {
-                        const year = parseInt(date.split('/').pop());
+                        const year = parseInt(ddmmyyyy.split('/').pop());
                         return CAN[year % 10] + ' ' + CHI[year % 12];
                     } catch (e) { }
+                },
+                parseDate(ddmmyyyy) {
+                    return Date.parse(ddmmyyyy.split('/').reverse().join('-'));
                 }
             }
         }).mount('#modal');
