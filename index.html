@@ -16,8 +16,8 @@
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
-                <img src="packages/bootstrap-icons/icons/people.svg" width="32" height="32">
-                <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark>Tree</mark></span>
+                <i class="bi-people fs-2 text-success"></i>
+                <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark class="font-monospace">Tree</mark></span>
                 <div class="spiner spinner-border text-info ms-3" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
@@ -46,7 +46,7 @@
                     <ul class="list-group">
                         <a href="#" class="list-group-item list-group-item-action active">
                             <span>{{family.member.fullname}}</span>
-                            <img src="packages/bootstrap-icons/icons/pencil.svg" onclick="editMember()" data-bs-toggle="modal" data-bs-target="#modal">
+                            <i type="button" onclick="editMember()" class="bi-pencil" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             <span>&nbsp; – &nbsp;</span>
                             <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
@@ -81,20 +81,20 @@
                             </div>
                             <div class="col-4">
                                 <div class="form-floating">
-                                    <input type="text" class="form-control" placeholder="">
+                                    <input type="text" v-model.trim="member.nickname" class="form-control" placeholder="">
                                     <label>Tên gọi khác</label>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <input type="tel" class="form-control" placeholder="Số điện thoại">
+                                <input type="tel" v-model.trim="member.phone" class="form-control" placeholder="Số điện thoại">
                             </div>
                             <div class="col-6">
-                                <input type="email" class="form-control" placeholder="Địa chỉ email">
+                                <input type="email" v-model.trim="member.email" class="form-control" placeholder="Địa chỉ email">
                             </div>
                             <div class="col-6">
                                 <div class="input-group">
                                     <span class="input-group-text">Sinh năm</span>
-                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN" required>
+                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN">
                                 </div>
                             </div>
                             <div class="col-6">
@@ -109,21 +109,22 @@
                             <div class="col-6 collapse" id="collapseDeath">
                                 <div class="input-group">
                                     <span class="input-group-text">Mất ngày</span>
-                                    <input type="text" class="form-control" :pattern="DATE_PATTERN" required>
+                                    <input type="text" v-model.trim="member.deathday" class="form-control" :pattern="DATE_PATTERN">
                                 </div>
                             </div>
                             <div class="col-6 collapse" id="collapseDeath">
                                 <div class="input-group">
                                     <span class="input-group-text">tại</span>
-                                    <input type="text" class="form-control">
+                                    <input type="text" v-model.trim="member.deathplace" class="form-control">
                                     <span>&nbsp;</span>
-                                    <input type="checkbox" id="btn-lunar" class="btn-check" checked autocomplete="off">
+                                    <input type="checkbox" v-model="member.deathlunar" id="btn-lunar" class="btn-check" checked autocomplete="off">
                                     <label class="btn btn-outline-warning" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
                                 </div>
                             </div>
                             <div class="col-12">
-                                <input type="text" class="form-control" placeholder="Nơi ở hiện tại">
+                                <input type="text" v-model.trim="member.address" class="form-control" placeholder="Nơi ở hiện tại">
                             </div>
+                            <button type="submit" onclick="saveMember(event)" class="d-none">Save Changes</button>
                         </form>
                         <form id="history" class="row g-2">
                             <div class="col-4">
@@ -132,9 +133,9 @@
                             </div>
                             <div class="col-8">
                                 <label class="form-label float-end" type="button">
-                                    <img src="packages/bootstrap-icons/icons/x-circle.svg" @click="clsEvent()" v-show="event_date || event_details">
+                                    <i type="button" class="bi-x-circle text-warning" @click="clsEvent()" v-show="event_date || event_details"></i>
                                     <span>&nbsp;&nbsp;&nbsp;</span>
-                                    <img src="packages/bootstrap-icons/icons/save.svg" @click="addEvent()" v-show="event_date && event_details">
+                                    <i type="button" class="bi-save text-primary" @click="addEvent()" v-show="event_date && event_details"></i>
                                 </label>
                                 <input type="text" v-model.trim="event_details" v-on:keyup.enter="addEvent()" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
                             </div>
@@ -143,21 +144,31 @@
                             <tbody>
                                 <tr v-show="member.birthday">
                                     <td>{{member.birthday}}</td>
-                                    <td>Sinh năm {{toCanChi(member.birthday)}} tại {{member.birthplace}}.</td>
+                                    <td>
+                                        Sinh năm {{toCanChi(member.birthday)}}<span v-show="!member.birthplace">.</span>
+                                        <span v-show="member.birthplace"> tại {{member.birthplace}}.</span>
+                                    </td>
                                 </tr>
                                 <tr v-for="(event, id) in sortHistory">
                                     <td>{{event.date}}
                                     </td>
                                     <td>{{event.details}}
-                                        <i type="button" class="bi-x-lg float-end text-danger"></i>
+                                        <i type="button" @click="delEvent(event)" class="bi-x-lg float-end text-danger"></i>
+                                    </td>
+                                </tr>
+                                <tr v-show="member.deathday">
+                                    <td>{{member.deathday}}</td>
+                                    <td>
+                                        Mất ngày {{member.deathday}}<span v-show="!member.deathplace">.</span>
+                                        <span v-show="member.deathplace"> tại {{member.deathplace}}.</span>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-primary">Lưu thông tin</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" onclick="saveMember()" class="btn btn-primary">Lưu thông tin</button>
                     </div>
                 </div>
             </div>
@@ -171,7 +182,7 @@
     async function loadModules() {
         const {initializeApp} = await importFirebase('app');
         const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-        const {getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where} = await importFirebase('firestore');
+        const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where} = await importFirebase('firestore');
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -185,6 +196,9 @@
         const db = getFirestore(app);
         db.addDoc = async function(group, json) {
             return await addDoc(collection(db, group), json);
+        }
+        db.setDoc = async function(group, id, json) {
+            return await setDoc(doc(db, group, id), json);
         }
         db.getDoc = async function(group, id) {
             return await getDoc(doc(db, group, id));
@@ -219,7 +233,7 @@
         const query = new URL(window.location).searchParams.get('q');
         if (query) {
             member = await window.db.getDoc('members', query);
-            return {id: member.id, ...member.data()};
+            return {id: member.id, member: {...member.data()}};
         } else {
             const members = await window.db.getDocs('members', 'userid', '==', window.user.uid);
             if (members.size) {
@@ -252,7 +266,7 @@
                 return {
                     member: {
                         history: [
-                            {date: '1992', details: 'test thong tin'}
+                            {date: '2024', details: 'My Family Tree'}
                         ]
                     },
                     event_date: undefined,
@@ -262,6 +276,8 @@
             },
             computed: {
                 sortHistory() {
+                    if (this.member.history == undefined)
+                        this.member.history = [];
                     return this.member.history.sort(
                         (a, b) => this.parseDate(a.date) - this.parseDate(b.date)
                     );
@@ -269,10 +285,6 @@
 
             },
             methods: {
-                save(event) {
-                    app.family.member = this.member;
-                    bootstrap.Modal.getInstance('#modal').hide();
-                },
                 addEvent() {
                     const history = document.forms['history'];
                     if (history.reportValidity()) {
@@ -282,6 +294,9 @@
                         });
                         this.clsEvent();
                     }
+                },
+                delEvent(event) {
+                    this.member.history.splice(this.member.history.indexOf(event), 1);
                 },
                 clsEvent() {
                     this.event_date = this.event_details = undefined;
@@ -300,11 +315,22 @@
             }
         }).mount('#modal');
         blockUI(false);
-        document.getElementById('showModal').click()
+        //document.getElementById('showModal').click()
     });
 
     function editMember() {
-        window.eApp.member = {...window.xApp.family.member}
+        window.eApp.id = window.xApp.family.id;
+        window.eApp.member = {...window.xApp.family.member};
+    }
+    function saveMember(event) {
+        if (event) event.preventDefault();
+        const member = document.forms['member'];
+        if (member.reportValidity()) {
+            abide(db.setDoc('members', window.eApp.id, window.eApp.member), () => {
+                window.xApp.family.member = window.eApp.member;
+                bootstrap.Modal.getInstance('#modal').hide();
+            })
+        }
     }
 
     window.addEventListener('user', function() {
@@ -319,8 +345,8 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        abide(loadMember(), (member) => {
-            window.xApp.family.member = member;
+        abide(loadMember(), (family) => {
+            window.xApp.family = family;
         });
     });
 </script>
