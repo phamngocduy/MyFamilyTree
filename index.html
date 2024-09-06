@@ -233,14 +233,17 @@
         const query = new URL(window.location).searchParams.get('q');
         if (query) {
             member = await window.db.getDoc('members', query);
+            if (!member.exists()) window.location.replace('.');
             return {id: member.id, member: {...member.data()}};
         } else {
-            const members = await window.db.getDocs('members', 'userid', '==', window.user.uid);
+            const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
             if (members.size) {
                 window.location = `?q=${members.docs[0].id}`;
             } else {
                 const docRef = await db.addDoc('members', {
-                    userid: user.uid,
+                    userid: [user.uid],
+                    email: user.email,
+                    phone: user.phoneNumber,
                     fullname: user.displayName ?? 'Anonymous'
                 });
                 window.location = `?q=${docRef.id}`;
