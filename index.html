@@ -11,8 +11,6 @@
     <script src="config.js"></script>
 </head>
 <body>
-    <div class="spiner bg-white opacity-50 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;z-index:2000;">
-    </div>
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
@@ -21,6 +19,8 @@
                 <div class="spiner spinner-border text-info ms-3" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
+                <div class="spiner bg-white opacity-50 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;z-index:2000;">
+                </div>            
             </a>
             <div id="user-info" class="d-flex">
                 <div class="dropdown">
@@ -45,10 +45,16 @@
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
                         <a href="#" class="list-group-item list-group-item-action active">
-                            <span>{{family.member.fullname}}</span>
-                            <i type="button" onclick="editMember()" class="bi-pencil" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            <span>
+                                {{family.member.fullname}}
+                                <i type="button" onclick="editMember()" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            </span>
                             <span>&nbsp; – &nbsp;</span>
-                            <i type="button" onclick="addSpouse(this)" :id="family.member.id" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align: sub;"></i>
+                            <i type="button" onclick="addSpouse(this)" :id="family.member.id" v-show="!family.spouses" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;"></i>
+                            <span v-for="spouse in family.spouses">
+                                {{spouse.fullname}}
+                                <i type="button" onclick="editMember()" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
                         <div class="list-group-item ps-5">
@@ -221,27 +227,27 @@
     });
 </script>
 <script>
-    function blockUI(state) {
-        Array.from(document.getElementsByClassName('spiner')).forEach((spiner) => {
-            spiner.style.display = state ? 'block' : 'none';
-        });
+    function blockUI(count) {
+        const blocks = document.getElementsByClassName('spiner');
+        for (var i=0; i<blocks.length; i++) {
+            blocks[i].style.display = i < count ? 'block' : 'none';
+        }
     }
-    function abide(promise, callback) {
-        blockUI(true);
+    function abide(promise, callback, block=2) {
+        blockUI(block);
         promise.then((value) => {
-            if (callback)
-                callback(value)
+            if (callback) callback(value);
         }).catch((error) => {
             console.error(error);
             alert(error.message);
         }).finally(() => blockUI(false));
     }
-    async function loadMember() {
+    async function initMember() {
         const query = new URL(window.location).searchParams.get('q');
         if (query) {
-            member = await window.db.getDoc('members', query);
-            if (!member.exists()) window.location.replace('.');
-            return {id: member.id, ...member.data()};
+            member = await loadMember(query);
+            if (!member) window.location.replace('.');
+            return {id: query, ...member};
         } else {
             const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
             if (members.size) {
@@ -256,6 +262,22 @@
                 window.location = `?q=${docRef.id}`;
             }
         }
+    }
+    async function loadMember(member_id) {
+        const member = await window.db.getDoc('members', member_id);
+        if (member.exists()) return member.data();
+    }
+    async function loadSpouses(member_id) {
+        const relations = await window.db.getDocs('relations', 'parents', 'array-contains', member_id);
+        const spouses = [];
+        if (relations.size) {
+            for (const spouse_id of relations.docs[0].data().parents) {
+                if (spouse_id != member_id) {
+                    spouses.push(await loadMember(spouse_id));
+                }
+            }
+        }
+        return spouses;
     }
 </script>
 <script>
@@ -324,7 +346,7 @@
                 }
             }
         }).mount('#modal');
-        blockUI(false);
+        blockUI(0);
         //document.getElementById('showModal').click()
     });
 
@@ -356,7 +378,7 @@
         window.eApp.type = 'SPOUSE';
     }
     async function setSpouse(spouse) {
-        const batch = await db.batch();
+        const batch = await window.db.batch();
         const id = spouse.id; delete spouse.id;
         const member = await db.newDoc('members');
         const relation = await db.newDoc('relations');
@@ -380,9 +402,10 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        abide(loadMember(), (member) => {
+        abide(initMember(), (member) => {
             window.xApp.family.member = member;
-        });
+            abide(loadSpouses(member.id), (spouses) => window.xApp.family.spouses = spouses);
+        }, block=1);
     });
 </script>
 </html>
