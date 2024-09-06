@@ -16,7 +16,7 @@
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
-                <i class="bi-people fs-2 text-success"></i>
+                <i class="bi-people fs-1 text-success"></i>
                 <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark class="font-monospace">Tree</mark></span>
                 <div class="spiner spinner-border text-info ms-3" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -48,7 +48,7 @@
                             <span>{{family.member.fullname}}</span>
                             <i type="button" onclick="editMember()" class="bi-pencil" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             <span>&nbsp; – &nbsp;</span>
-                            <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
+                            <i type="button" onclick="addSpouse(this)" :id="family.member.id" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align: sub;"></i>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
                         <div class="list-group-item ps-5">
@@ -182,7 +182,7 @@
     async function loadModules() {
         const {initializeApp} = await importFirebase('app');
         const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-        const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where} = await importFirebase('firestore');
+        const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch} = await importFirebase('firestore');
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -194,10 +194,14 @@
         })
 
         const db = getFirestore(app);
+        db.newDoc = async function(group) {
+            return await doc(collection(db, group));
+        }
         db.addDoc = async function(group, json) {
             return await addDoc(collection(db, group), json);
         }
-        db.setDoc = async function(group, id, json) {
+        db.setDoc = async function(group, json) {
+            const id = json.id; delete json.id;
             return await setDoc(doc(db, group, id), json);
         }
         db.getDoc = async function(group, id) {
@@ -206,7 +210,10 @@
         db.getDocs = async function(group, field, operator, value) {
             return await getDocs(query(collection(db, group), where(field, operator, value)));
         }
-        window.db = db
+        db.batch = async function() {
+            return await writeBatch(db);
+        }
+        window.db = db;
     }
     window.addEventListener('load', async function() {
         //loadModules().then(() => window.dispatchEvent(new CustomEvent('init')));
@@ -234,7 +241,7 @@
         if (query) {
             member = await window.db.getDoc('members', query);
             if (!member.exists()) window.location.replace('.');
-            return {id: member.id, member: {...member.data()}};
+            return {id: member.id, ...member.data()};
         } else {
             const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
             if (members.size) {
@@ -322,18 +329,43 @@
     });
 
     function editMember() {
-        window.eApp.id = window.xApp.family.id;
         window.eApp.member = {...window.xApp.family.member};
     }
     function saveMember(event) {
         if (event) event.preventDefault();
         const member = document.forms['member'];
         if (member.reportValidity()) {
-            abide(db.setDoc('members', window.eApp.id, window.eApp.member), () => {
-                window.xApp.family.member = window.eApp.member;
-                bootstrap.Modal.getInstance('#modal').hide();
-            })
+            switch (window.eApp.type) {
+                case 'SPOUSE':
+                    abide(setSpouse(window.eApp.member), () => {
+                        bootstrap.Modal.getInstance('#modal').hide();
+                    }); break;
+                default:
+                    abide(db.setDoc('members', window.eApp.member), () => {
+                        window.xApp.family.member = window.eApp.member;
+                        bootstrap.Modal.getInstance('#modal').hide();
+                    }); break;
+            }
         }
+    }
+
+    function addSpouse(spouse) {
+        window.eApp.member = {
+            id: spouse.id
+        };
+        window.eApp.type = 'SPOUSE';
+    }
+    async function setSpouse(spouse) {
+        const batch = await db.batch();
+        const id = spouse.id; delete spouse.id;
+        const member = await db.newDoc('members');
+        const relation = await db.newDoc('relations');
+        await batch.set(member, spouse);
+        await batch.set(relation, {
+            parents: [id, member.id],
+            children: []
+        });
+        await batch.commit();
     }
 
     window.addEventListener('user', function() {
@@ -348,8 +380,8 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        abide(loadMember(), (family) => {
-            window.xApp.family = family;
+        abide(loadMember(), (member) => {
+            window.xApp.family.member = member;
         });
     });
 </script>
