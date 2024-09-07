@@ -45,15 +45,15 @@
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
                         <a href="#" class="list-group-item list-group-item-action active">
-                            <span>
+                            <span v-show="family.member">
                                 {{family.member.fullname}}
-                                <i type="button" onclick="editMember()" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                                <i type="button" @click="editMember(family.member)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <span>&nbsp; – &nbsp;</span>
-                            <i type="button" onclick="addSpouse(this)" :id="family.member.id" v-show="!family.spouses" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;"></i>
+                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-show="!family.spouses"></i>
                             <span v-for="spouse in family.spouses">
                                 {{spouse.fullname}}
-                                <i type="button" onclick="editMember()" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                                <i type="button" @click="editMember(spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
@@ -74,7 +74,7 @@
                 </a>
             </ul>
         </main>
-        <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-body">
@@ -193,11 +193,13 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         onAuthStateChanged(auth, (user) => {
-            if (user) window.user = user;
-            else window.location = './login.html';
-            dispatchEvent(new CustomEvent('user'));
-            window.signOut = () => abide(signOut(auth));
-        })
+            if (user) {
+                window.user = user;
+                dispatchEvent(new CustomEvent('user'));
+                window.signOut = () => await2(signOut(auth));
+            }
+            else window.location = 'login.html';
+        });
 
         const db = getFirestore(app);
         db.newDoc = async function(group) {
@@ -221,20 +223,20 @@
         }
         window.db = db;
     }
+
     window.addEventListener('load', async function() {
-        //loadModules().then(() => window.dispatchEvent(new CustomEvent('init')));
-        abide(loadModules(), () => window.dispatchEvent(new CustomEvent('init')));
+        await2(loadModules(), () => window.dispatchEvent(new CustomEvent('init')));
     });
 </script>
 <script>
-    function blockUI(count) {
+    function blockUI(spiners) {
         const blocks = document.getElementsByClassName('spiner');
         for (var i=0; i<blocks.length; i++) {
-            blocks[i].style.display = i < count ? 'block' : 'none';
+            blocks[i].style.display = i < spiners ? 'block' : 'none';
         }
     }
-    function abide(promise, callback, block=2) {
-        blockUI(block);
+    function await(promise, callback, spiners) {
+        blockUI(spiners);
         promise.then((value) => {
             if (callback) callback(value);
         }).catch((error) => {
@@ -242,24 +244,29 @@
             alert(error.message);
         }).finally(() => blockUI(false));
     }
+    function await1(promise, callback) {
+        window.await(promise, callback, spiners=1);
+    }
+    function await2(promise, callback) {
+        window.await(promise, callback, spiners=2)
+    }
     async function initMember() {
         const query = new URL(window.location).searchParams.get('q');
         if (query) {
-            member = await loadMember(query);
-            if (!member) window.location.replace('.');
-            return {id: query, ...member};
+            const member = await loadMember(query);
+            return member ? {id: query, ...member} : window.location.replace('.');
         } else {
             const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
             if (members.size) {
-                window.location = `?q=${members.docs[0].id}`;
+                window.location.replace(`?q=${members.docs[0].id}`);
             } else {
-                const docRef = await db.addDoc('members', {
+                const member = await db.addDoc('members', {
                     userid: [user.uid],
                     email: user.email,
                     phone: user.phoneNumber,
                     fullname: user.displayName ?? 'Anonymous'
                 });
-                window.location = `?q=${docRef.id}`;
+                window.location.replace(`?q=${member.id}`);
             }
         }
     }
@@ -273,7 +280,8 @@
         if (relations.size) {
             for (const spouse_id of relations.docs[0].data().parents) {
                 if (spouse_id != member_id) {
-                    spouses.push(await loadMember(spouse_id));
+                    const spouse = await loadMember(spouse_id);
+                    if (spouse) spouses.push({id: spouse_id, ...spouse});
                 }
             }
         }
@@ -289,6 +297,12 @@
                     family: {
                         member: {}
                     }
+                };
+            },
+            methods: {
+                editMember(member) {
+                    window.eApp.member = member;
+                    window.eApp.type = undefined;
                 }
             }
         }).mount('main');
@@ -304,7 +318,7 @@
                     event_date: undefined,
                     event_details: undefined,
                     DATE_PATTERN: DATE_PATTERN
-                }
+                };
             },
             computed: {
                 sortHistory() {
@@ -346,34 +360,30 @@
                 }
             }
         }).mount('#modal');
-        blockUI(0);
+        blockUI(false);
         //document.getElementById('showModal').click()
     });
 
-    function editMember() {
-        window.eApp.member = {...window.xApp.family.member};
-    }
     function saveMember(event) {
         if (event) event.preventDefault();
-        const member = document.forms['member'];
-        if (member.reportValidity()) {
+        if (document.forms['member'].reportValidity()) {
+            const modal = bootstrap.Modal.getInstance('#modal');
             switch (window.eApp.type) {
                 case 'SPOUSE':
-                    abide(setSpouse(window.eApp.member), () => {
-                        bootstrap.Modal.getInstance('#modal').hide();
-                    }); break;
+                    await2(setSpouse(window.eApp.member),
+                    () => window.xApp.family.spouses = [window.eApp.member]);
+                    break;
                 default:
-                    abide(db.setDoc('members', window.eApp.member), () => {
-                        window.xApp.family.member = window.eApp.member;
-                        bootstrap.Modal.getInstance('#modal').hide();
-                    }); break;
+                    await2(db.setDoc('members', window.eApp.member),
+                    () => window.xApp.family.member = window.eApp.member);
             }
+            modal.hide();
         }
     }
 
-    function addSpouse(spouse) {
+    function addSpouse(spouse_id) {
         window.eApp.member = {
-            id: spouse.id
+            id: spouse_id
         };
         window.eApp.type = 'SPOUSE';
     }
@@ -402,10 +412,11 @@
             document.getElementById('user-phone').textContent = window.user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        abide(initMember(), (member) => {
+        await2(initMember(), (member) => {
+            if (!member) return false;
             window.xApp.family.member = member;
-            abide(loadSpouses(member.id), (spouses) => window.xApp.family.spouses = spouses);
-        }, block=1);
+            await1(loadSpouses(member.id), (spouses) => window.xApp.family.spouses = spouses);
+        });
     });
 </script>
 </html>
