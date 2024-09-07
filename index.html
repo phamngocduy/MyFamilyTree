@@ -46,13 +46,13 @@
                     <ul class="list-group">
                         <a href="#" class="list-group-item list-group-item-action active">
                             <span v-show="family.member">
-                                {{family.member.fullname}}
+                                <span>{{family.member.fullname}}</span>
                                 <i type="button" @click="editMember(family.member)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <span>&nbsp; – &nbsp;</span>
                             <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-show="!family.spouses"></i>
                             <span v-for="spouse in family.spouses">
-                                {{spouse.fullname}}
+                                <span v-bind:onclick="`window.location.assign('?q=${spouse.id}')`">{{spouse.fullname}}</span>
                                 <i type="button" @click="editMember(spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
@@ -60,7 +60,7 @@
                         <div class="list-group-item ps-5">
                             <ul class="list-group">
                                 <a href="#" class="list-group-item list-group-item-action">
-                                    <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
+                                    <i type="button" v-bind:onclick="`addChild('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal"></i>
                                 </a>
                             </ul>
                         </div>
@@ -202,6 +202,11 @@
         });
 
         const db = getFirestore(app);
+        db.popId = (json) => {
+            const id = json.id;
+            delete json.id;
+            return id;
+        }
         db.newDoc = async function(group) {
             return await doc(collection(db, group));
         }
@@ -209,7 +214,7 @@
             return await addDoc(collection(db, group), json);
         }
         db.setDoc = async function(group, json) {
-            const id = json.id; delete json.id;
+            const id = db.popId(json);
             return await setDoc(doc(db, group, id), json);
         }
         db.getDoc = async function(group, id) {
@@ -369,6 +374,13 @@
         if (document.forms['member'].reportValidity()) {
             const modal = bootstrap.Modal.getInstance('#modal');
             switch (window.eApp.type) {
+                case 'CHILD':
+                    await2(setChild(window.eApp.member), () => {
+                        if (window.xApp.family.children)
+                            window.xApp.family.children.push(window.eApp.member);
+                        else window.xApp.family.children = [window.eApp.member];
+                    });
+                    break;
                 case 'SPOUSE':
                     await2(setSpouse(window.eApp.member),
                     () => window.xApp.family.spouses = [window.eApp.member]);
@@ -389,14 +401,39 @@
     }
     async function setSpouse(spouse) {
         const batch = await window.db.batch();
-        const id = spouse.id; delete spouse.id;
-        const member = await db.newDoc('members');
-        const relation = await db.newDoc('relations');
+        const spouse_id = window.db.popId(spouse);
+        const member = await window.db.newDoc('members');
+        const relation = await window.db.newDoc('relations');
         await batch.set(member, spouse);
         await batch.set(relation, {
-            parents: [id, member.id],
+            parents: [spouse_id, member.id],
             children: []
         });
+        await batch.commit();
+    }
+    function addChild(parent_id) {
+        window.eApp.member = {
+            id: parent_id
+        };
+        window.eApp.type = 'CHILD';
+    }
+    async function setChild(child) {
+        const batch = await window.db.batch();
+        const parent_id = window.db.popId(child);
+        const member = await window.db.newDoc('members');
+        const relations = await window.db.getDocs('relations', 'parents', 'array-contains', child_id);
+        const relation = relations.size ? relations.docs[0] : await window.db.newDoc('relations');
+        const relation_data = relation.data();
+        if (relations.size) {
+            relation_data.children.push(member.id);
+        } else {
+            relation_data = {
+                parents: [parent_id],
+                children: [member.id]
+            };
+        }
+        await batch.set(member, child);
+        await batch.set(relation, relation_data);
         await batch.commit();
     }
 
