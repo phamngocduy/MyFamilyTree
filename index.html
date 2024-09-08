@@ -44,16 +44,14 @@
                 </a>
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
-                        <a href="#" class="list-group-item list-group-item-action active">
-                            <span v-show="family.member">
-                                <span>{{family.member.fullname}}</span>
-                                <i type="button" @click="editMember(family.member)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
-                            </span>
+                        <a href="#" v-for="member in family.children" class="list-group-item list-group-item-action active">
+                            <span>{{member.details.fullname}}&nbsp;</span>
+                            <i type="button" @click="editMember(member.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             <span>&nbsp; – &nbsp;</span>
-                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-show="!family.spouses"></i>
-                            <span v-for="spouse in family.spouses">
-                                <span v-bind:onclick="`window.location.assign('?q=${spouse.id}')`">{{spouse.fullname}}</span>
-                                <i type="button" @click="editMember(spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-show="!member.spouses"></i>
+                            <span v-for="spouse in member.spouses">
+                                <span v-bind:onclick="`window.location.assign('?q=${spouse.id}')`">{{spouse.details.fullname}}&nbsp;</span>
+                                <i type="button" @click="editMember(spouse.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
@@ -202,19 +200,13 @@
         });
 
         const db = getFirestore(app);
-        db.popId = (json) => {
-            const id = json.id;
-            delete json.id;
-            return id;
-        }
         db.newDoc = async function(group) {
             return await doc(collection(db, group));
         }
         db.addDoc = async function(group, json) {
             return await addDoc(collection(db, group), json);
         }
-        db.setDoc = async function(group, json) {
-            const id = db.popId(json);
+        db.setDoc = async function(group, id, json) {
             return await setDoc(doc(db, group, id), json);
         }
         db.getDoc = async function(group, id) {
@@ -255,14 +247,22 @@
     function await2(promise, callback) {
         window.await(promise, callback, spiners=2)
     }
+    Array.prototype.findById = function(id) {
+        return this.find((element) => element.id == id);
+    }
     async function initMember() {
-        const query = new URL(window.location).searchParams.get('q');
-        if (query) {
-            const member = await loadMember(query);
-            return member ? {id: query, ...member} : window.location.replace('.');
+        window.member_id = new URL(window.location).searchParams.get('q');
+        if (window.member_id) {
+            const member = await loadMember(window.member_id);
+            if (member != undefined)
+                return {
+                    id: window.member_id,
+                    details: member
+                }
+            else window.location.replace('.');
         } else {
             const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
-            if (members.size) {
+            if (members.size > 0) {
                 window.location.replace(`?q=${members.docs[0].id}`);
             } else {
                 const member = await db.addDoc('members', {
@@ -277,16 +277,16 @@
     }
     async function loadMember(member_id) {
         const member = await window.db.getDoc('members', member_id);
-        if (member.exists()) return member.data();
+        return member.exists() ? member.data() : undefined;
     }
     async function loadSpouses(member_id) {
         const relations = await window.db.getDocs('relations', 'parents', 'array-contains', member_id);
         const spouses = [];
-        if (relations.size) {
+        if (relations.size > 0) {
             for (const spouse_id of relations.docs[0].data().parents) {
                 if (spouse_id != member_id) {
                     const spouse = await loadMember(spouse_id);
-                    if (spouse) spouses.push({id: spouse_id, ...spouse});
+                    if (spouse) spouses.push({id: spouse_id, details: spouse});
                 }
             }
         }
@@ -451,8 +451,9 @@
 
         await2(initMember(), (member) => {
             if (!member) return false;
-            window.xApp.family.member = member;
-            await1(loadSpouses(member.id), (spouses) => window.xApp.family.spouses = spouses);
+            window.xApp.family.children = [member];
+            await1(loadSpouses(member.id), (spouses) =>
+                window.xApp.family.children.findById(member.id).spouses = spouses);
         });
     });
 </script>
