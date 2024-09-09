@@ -11,16 +11,19 @@
     <script src="config.js"></script>
 </head>
 <body>
+    <div id="blocker" class="align-items-center text-center bg-white opacity-100 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;display:flex;z-index:2000;">
+        <div style="width:100%;">
+            <div class="spinner-grow text-primary" role="status"></div>
+            <div class="spinner-grow text-info" role="status"></div>
+            <div class="spinner-grow text-light" role="status"></div>
+        </div>
+    </div>
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
         <header class="d-flex justify-content-between pb-3 mb-5 border-bottom">
             <a href="#" class="d-flex align-items-center text-dark text-decoration-none">
                 <i class="bi-people fs-1 text-success"></i>
                 <span class="fs-4 ms-2"><small class="text-body-secondary"><em>my</em></small> <strong>Family</strong> <mark class="font-monospace">Tree</mark></span>
-                <div class="spiner spinner-border text-info ms-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <div class="spiner bg-white opacity-50 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;z-index:2000;">
-                </div>            
+                <div id="loader" class="spinner-border text-primary ms-3" role="status"></div>
             </a>
             <div id="user-info" class="d-flex">
                 <div class="dropdown">
@@ -183,7 +186,7 @@
       </div>
 </body>
 <script type="module">
-    async function loadModules() {
+    async function loadFirebase() {
         const {initializeApp} = await importFirebase('app');
         const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
         const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch} = await importFirebase('firestore');
@@ -194,7 +197,7 @@
             if (user) {
                 window.user = user;
                 dispatchEvent(new CustomEvent('user'));
-                window.signOut = () => await2(signOut(auth));
+                window.signOut = () => invoke(signOut(auth));
             }
             else window.location = 'login.html';
         });
@@ -221,49 +224,50 @@
         window.db = db;
     }
 
-    window.addEventListener('load', async function() {
-        await2(loadModules(), () => window.dispatchEvent(new CustomEvent('init')));
-    });
+    addEventListener('load', () =>
+        invoke(loadFirebase(), () =>
+            dispatchEvent(new CustomEvent('init')))
+    );
 </script>
 <script>
-    function blockUI(spiners) {
-        const blocks = document.getElementsByClassName('spiner');
-        for (var i=0; i<blocks.length; i++) {
-            blocks[i].style.display = i < spiners ? 'block' : 'none';
-        }
+    Array.prototype.findById = function(id) {
+        return this.find((element) => element.id == id);
     }
-    function await(promise, callback, spiners) {
-        blockUI(spiners);
+
+    function blockUI(block) {
+        document.getElementById('blocker').style.display = block ? 'flex' : 'none';
+    }
+    function loadUI(block) {
+        document.getElementById('loader').style.display = block ? 'block' : 'none';
+    }
+
+    function invoke(promise, callback, blocker=blockUI) {
+        blocker(true);
         promise.then((value) => {
             if (callback) callback(value);
         }).catch((error) => {
             console.error(error);
             alert(error.message);
-        }).finally(() => blockUI(false));
+        }).finally(() => blocker(false));
     }
-    function await1(promise, callback) {
-        window.await(promise, callback, spiners=1);
+    function revoke(promise, callback) {
+        invoke(promise, callback, blocker=loadUI);
     }
-    function await2(promise, callback) {
-        window.await(promise, callback, spiners=2)
-    }
-    Array.prototype.findById = function(id) {
-        return this.find((element) => element.id == id);
-    }
+
     async function initMember() {
-        window.member_id = new URL(window.location).searchParams.get('q');
-        if (window.member_id) {
-            const member = await loadMember(window.member_id);
+        window.member_id = new URL(location).searchParams.get('q');
+        if (member_id != undefined) {
+            const member = await loadMember(member_id);
             if (member != undefined)
                 return {
-                    id: window.member_id,
+                    id: member_id,
                     details: member
                 }
-            else window.location.replace('.');
+            else location.replace('.');
         } else {
-            const members = await window.db.getDocs('members', 'userid', 'array-contains', window.user.uid);
+            const members = await db.getDocs('members', 'userid', 'array-contains', user.uid);
             if (members.size > 0) {
-                window.location.replace(`?q=${members.docs[0].id}`);
+                location.replace(`?q=${members.docs[0].id}`);
             } else {
                 const member = await db.addDoc('members', {
                     userid: [user.uid],
@@ -271,16 +275,18 @@
                     phone: user.phoneNumber,
                     fullname: user.displayName ?? 'Anonymous'
                 });
-                window.location.replace(`?q=${member.id}`);
+                location.replace(`?q=${member.id}`);
             }
         }
     }
+
     async function loadMember(member_id) {
-        const member = await window.db.getDoc('members', member_id);
+        const member = await db.getDoc('members', member_id);
         return member.exists() ? member.data() : undefined;
     }
+
     async function loadSpouses(member_id) {
-        const relations = await window.db.getDocs('relations', 'parents', 'array-contains', member_id);
+        const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
         const spouses = [];
         if (relations.size > 0) {
             for (const spouse_id of relations.docs[0].data().parents) {
@@ -365,7 +371,6 @@
                 }
             }
         }).mount('#modal');
-        blockUI(false);
         //document.getElementById('showModal').click()
     });
 
@@ -437,23 +442,23 @@
         await batch.commit();
     }
 
-    window.addEventListener('user', function() {
-        if (window.user.photoURL) {
+    addEventListener('user', function() {
+        if (user.photoURL) {
             document.getElementById('user-photo').style.display = 'block';
-            document.getElementById('user-photo').src = window.user.photoURL;
-        } else if (window.user.displayName)
-            document.getElementById('user-name').textContent = window.user.displayName;
-        else if (window.user.email)
-            document.getElementById('user-email').textContent = window.user.email;
-        else if (window.user.phoneNumber)
-            document.getElementById('user-phone').textContent = window.user.phoneNumber;
+            document.getElementById('user-photo').src = user.photoURL;
+        } else if (user.displayName)
+            document.getElementById('user-name').textContent = user.displayName;
+        else if (user.email)
+            document.getElementById('user-email').textContent = user.email;
+        else if (user.phoneNumber)
+            document.getElementById('user-phone').textContent = user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        await2(initMember(), (member) => {
+        revoke(initMember(), (member) => {
             if (!member) return false;
-            window.xApp.family.children = [member];
-            await1(loadSpouses(member.id), (spouses) =>
-                window.xApp.family.children.findById(member.id).spouses = spouses);
+            xApp.family.children = [member];
+            revoke(loadSpouses(member.id), (spouses) =>
+                xApp.family.children.findById(member.id).spouses = spouses);
         });
     });
 </script>
