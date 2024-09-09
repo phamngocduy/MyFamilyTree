@@ -51,10 +51,10 @@
                             <span>{{member.details.fullname}}&nbsp;</span>
                             <i type="button" @click="editMember(member.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             <span>&nbsp; – &nbsp;</span>
-                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-show="!member.spouses"></i>
-                            <span v-for="spouse in member.spouses">
-                                <span v-bind:onclick="`window.location.assign('?q=${spouse.id}')`">{{spouse.details.fullname}}&nbsp;</span>
-                                <i type="button" @click="editMember(spouse.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-if="!member.family || !member.family.spouse"></i>
+                            <span v-if="member.family && member.family.spouse">
+                                <span v-bind:onclick="`window.location.assign('?q=${member.family.spouse.id}')`">{{member.family.spouse.details.fullname}}&nbsp;</span>
+                                <i type="button" @click="editMember(member.family.spouse.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
@@ -140,20 +140,20 @@
                             </div>
                             <div class="col-8">
                                 <label class="form-label float-end" type="button">
-                                    <i type="button" class="bi-x-circle text-warning" @click="clsEvent()" v-show="event_date || event_details"></i>
+                                    <i type="button" class="bi-x-circle text-warning" @click="clsEvent()" v-if="event_date || event_details"></i>
                                     <span>&nbsp;&nbsp;&nbsp;</span>
-                                    <i type="button" class="bi-save text-primary" @click="addEvent()" v-show="event_date && event_details"></i>
+                                    <i type="button" class="bi-save text-primary" @click="addEvent()" v-if="event_date && event_details"></i>
                                 </label>
                                 <input type="text" v-model.trim="event_details" v-on:keyup.enter="addEvent()" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
                             </div>
                         </form>
                         <table class="table table-hover table-stripe">
                             <tbody>
-                                <tr v-show="member.birthday">
+                                <tr v-if="member.birthday">
                                     <td>{{member.birthday}}</td>
                                     <td>
-                                        Sinh năm {{toCanChi(member.birthday)}}<span v-show="!member.birthplace">.</span>
-                                        <span v-show="member.birthplace"> tại {{member.birthplace}}.</span>
+                                        Sinh năm {{toCanChi(member.birthday)}}<span v-if="!member.birthplace">.</span>
+                                        <span v-if="member.birthplace"> tại {{member.birthplace}}.</span>
                                     </td>
                                 </tr>
                                 <tr v-for="(event, id) in sortHistory">
@@ -163,11 +163,11 @@
                                         <i type="button" @click="delEvent(event)" class="bi-x-lg float-end text-danger"></i>
                                     </td>
                                 </tr>
-                                <tr v-show="member.deathday">
+                                <tr v-if="member.deathday">
                                     <td>{{member.deathday}}</td>
                                     <td>
-                                        Mất ngày {{member.deathday}}<span v-show="!member.deathplace">.</span>
-                                        <span v-show="member.deathplace"> tại {{member.deathplace}}.</span>
+                                        Mất ngày {{member.deathday}}<span v-if="!member.deathplace">.</span>
+                                        <span v-if="member.deathplace"> tại {{member.deathplace}}.</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -233,6 +233,9 @@
     Array.prototype.findById = function(id) {
         return this.find((element) => element.id == id);
     }
+    Array.prototype.remove = function(element) {
+        return this.splice(this.indexOf(element), 1);
+    }
 
     function blockUI(block) {
         document.getElementById('blocker').style.display = block ? 'flex' : 'none';
@@ -283,6 +286,30 @@
     async function loadMember(member_id) {
         const member = await db.getDoc('members', member_id);
         return member.exists() ? member.data() : undefined;
+    }
+
+    async function loadFamily(member_id) {
+        const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
+        const family = {children: []};
+        if (relations.size > 0) {
+            const relation = relations.docs[0].data();
+            relation.parents.remove(member_id);
+            if (relation.parents.length > 0) {
+                const spouse = await loadMember(relation.parents[0]);
+                family.spouse = {
+                    id: relation.parents[0],
+                    details: spouse
+                }
+            }
+            for (const child_id of relation.children) {
+                const child = await loadMember(child_id)
+                family.children.push({
+                    id: child_id,
+                    details: child
+                });
+            }
+        };
+        return family;
     }
 
     async function loadSpouses(member_id) {
@@ -457,8 +484,8 @@
         revoke(initMember(), (member) => {
             if (!member) return false;
             xApp.family.children = [member];
-            revoke(loadSpouses(member.id), (spouses) =>
-                xApp.family.children.findById(member.id).spouses = spouses);
+            revoke(loadFamily(member.id), (family) =>
+                xApp.family.children.findById(member.id).family = family);
         });
     });
 </script>
