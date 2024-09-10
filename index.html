@@ -49,19 +49,19 @@
                     <ul class="list-group">
                         <a href="#" v-for="member in family.children" class="list-group-item list-group-item-action active">
                             <span>{{member.details.fullname}}&nbsp;</span>
-                            <i type="button" @click="editMember(member.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                            <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
                             <span>&nbsp; – &nbsp;</span>
-                            <i type="button" v-bind:onclick="`addSpouse('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal" style="vertical-align:sub;" v-if="!member.family || !member.family.spouse"></i>
+                            <i type="button" @click="addSpouse(member)" v-if="!member.family?.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
                             <span v-if="member.family && member.family.spouse">
                                 <span v-bind:onclick="`window.location.assign('?q=${member.family.spouse.id}')`">{{member.family.spouse.details.fullname}}&nbsp;</span>
-                                <i type="button" @click="editMember(member.family.spouse.details)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                                <i type="button" @click="editMember(member.family.spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
                             </span>
                             <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                         </a>
                         <div class="list-group-item ps-5">
                             <ul class="list-group">
                                 <a href="#" class="list-group-item list-group-item-action">
-                                    <i type="button" v-bind:onclick="`addChild('${family.member.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                                    <i type="button" v-bind:onclick="`addChild('${member?.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal"></i>
                                 </a>
                             </ul>
                         </div>
@@ -290,8 +290,9 @@
 
     async function loadFamily(member_id) {
         const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
-        const family = {children: []};
+        const family = {member_id: member_id, children: []};
         if (relations.size > 0) {
+            family.id = relations.docs[0].id;
             const relation = relations.docs[0].data();
             relation.parents.remove(member_id);
             if (relation.parents.length > 0) {
@@ -302,7 +303,7 @@
                 }
             }
             for (const child_id of relation.children) {
-                const child = await loadMember(child_id)
+                const child = await loadMember(child_id);
                 family.children.push({
                     id: child_id,
                     details: child
@@ -311,20 +312,6 @@
         };
         return family;
     }
-
-    async function loadSpouses(member_id) {
-        const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
-        const spouses = [];
-        if (relations.size > 0) {
-            for (const spouse_id of relations.docs[0].data().parents) {
-                if (spouse_id != member_id) {
-                    const spouse = await loadMember(spouse_id);
-                    if (spouse) spouses.push({id: spouse_id, details: spouse});
-                }
-            }
-        }
-        return spouses;
-    }
 </script>
 <script>
     window.addEventListener('init', function() {
@@ -332,15 +319,23 @@
         window.xApp = createApp({
             data() {
                 return {
-                    family: {
-                        member: {}
-                    }
+                    family: {}
                 };
             },
             methods: {
+                addSpouse(member) {
+                    this.member = member;
+                    eApp.category = 'ADD_SPOUSE';
+                    eApp.member = {};
+                    window.modal.show();
+                },
                 editMember(member) {
-                    window.eApp.member = member;
-                    window.eApp.type = undefined;
+                    this.member = member;
+                    eApp.category = 'EDIT_MEMBER';
+                    revoke(loadMember(member.id), (member) => {
+                        eApp.member = member;
+                        window.modal.show();
+                    });
                 }
             }
         }).mount('main');
@@ -398,6 +393,8 @@
                 }
             }
         }).mount('#modal');
+        
+        window.modal = bootstrap.Modal.getOrCreateInstance('#modal');
         //document.getElementById('showModal').click()
     });
 
@@ -405,7 +402,7 @@
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
             const modal = bootstrap.Modal.getInstance('#modal');
-            switch (window.eApp.type) {
+            switch (eApp.category) {
                 case 'CHILD':
                     await2(setChild(window.eApp.member), () => {
                         if (window.xApp.family.children)
@@ -413,35 +410,37 @@
                         else window.xApp.family.children = [window.eApp.member];
                     });
                     break;
-                case 'SPOUSE':
-                    await2(setSpouse(window.eApp.member),
-                    () => window.xApp.family.spouses = [window.eApp.member]);
+                case 'ADD_SPOUSE':
+                    invoke(addSpouse(xApp.member.family, eApp.member),
+                        (spouse) => xApp.member.family.spouse = spouse);
                     break;
                 default:
-                    await2(db.setDoc('members', window.eApp.member),
-                    () => window.xApp.family.member = window.eApp.member);
+                    invoke(setMember(xApp.member.id, eApp.member),
+                        (member) => xApp.member.details = member);
+                    break;
             }
             modal.hide();
         }
     }
 
-    function addSpouse(spouse_id) {
-        window.eApp.member = {
-            id: spouse_id
-        };
-        window.eApp.type = 'SPOUSE';
+    async function setMember(id, member) {
+        await db.setDoc('members', xApp.member.id, eApp.member);
+        return (await db.getDoc('members', xApp.member.id)).data();
     }
-    async function setSpouse(spouse) {
-        const batch = await window.db.batch();
-        const spouse_id = window.db.popId(spouse);
-        const member = await window.db.newDoc('members');
-        const relation = await window.db.newDoc('relations');
+
+    async function addSpouse(family, spouse) {
+        const batch = await db.batch();
+        const relation = family.id ? await db.getDoc('relations', family.id) : await db.newDoc('relations');
+        const member = await db.newDoc('members');
         await batch.set(member, spouse);
-        await batch.set(relation, {
-            parents: [spouse_id, member.id],
-            children: []
-        });
+        family = family.id ? relation.data() : {parents: [family.member_id], children: []};
+        family.parents.push(member.id);
+        await batch.set(relation, family);
         await batch.commit();
+        return {
+            id: member.id,
+            details: (await db.getDoc('members', member.id)).data()
+        };
     }
     function addChild(parent_id) {
         window.eApp.member = {
