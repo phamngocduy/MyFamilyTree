@@ -8,6 +8,9 @@
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.prod.js"></script>
+    <style>
+        .link:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
     <div id="blocker" class="align-items-center text-center bg-white opacity-100 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;display:flex;z-index:2000;">
@@ -49,24 +52,23 @@
                         <div v-for="member in family.children" class="list-group-item border-0 p-0">
                             <div v-for="family in member.families">
                                 <a href="#" class="list-group-item list-group-item-action active">
-                                    <span>{{member.details.fullname}}&nbsp;</span>
+                                    <strong>{{member.details.fullname}}&nbsp;</strong>
                                     <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
                                     <span>&nbsp; – &nbsp;</span>
-                                    <i type="button" @click="initSpouse(member)" v-if="!family.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
+                                    <i type="button" @click="initSpouse(family)" v-if="!family.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
                                     <span v-if="family.spouse">
-                                        <span v-bind:onclick="`window.location.assign('?q=${family.spouse.id}')`">{{family.spouse.details.fullname}}&nbsp;</span>
+                                        <strong class="link" :onclick="`openMember('${family.spouse.id}')`">{{family.spouse.details.fullname}}</strong>&nbsp;
                                         <i type="button" @click="editMember(family.spouse)" class="bi-pencil text-warning"></i>
                                     </span>
-                                    <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
                                 </a>
                                 <div class="list-group-item ps-5">
                                     <ul class="list-group">
                                         <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
-                                            <span>{{child.details.fullname}}&nbsp;</span>
-                                            <i type="button" @click="editMember(child)" class="bi-pencil text-warning"></i>
+                                            <strong class="link" :onclick="`openMember('${child.id}')`">{{child.details.fullname}}</strong>&nbsp;
+                                            <i type="button" @click="editMember(child)" class="bi-pencil text-primary"></i>
                                         </a>
                                         <a href="#" class="list-group-item list-group-item-action">
-                                            <i type="button" @click="initChild(member)" class="bi-person-add fs-4"></i>
+                                            <i type="button" @click="initChild(family)" class="bi-person-add fs-4"></i>
                                         </a>
                                     </ul>
                                 </div>
@@ -197,18 +199,23 @@
 <script src="backend.js"></script>
 <script src="frontend.js"></script>
 <script>
+    function openMember(id) {
+        const Q = 'q';
+        location.assign(`?${Q}=${id}`);
+    }
+
     function saveChange(event) {
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
             const modal = bootstrap.Modal.getInstance('#modal');
             switch (eApp.category) {
                 case 'CHILD':
-                    invoke(saveChild(xApp.member.family, eApp.member),
-                        (child) => xApp.member.family.children.push(child));
+                    invoke(saveChild(xApp.relation, eApp.member),
+                        (child) => xApp.relation.children.push(child));
                     break;
                 case 'SPOUSE':
-                    invoke(saveSpouse(xApp.member.family, eApp.member),
-                        (spouse) => xApp.member.family.spouse = spouse);
+                    invoke(saveSpouse(xApp.relation, eApp.member),
+                        (spouse) => xApp.relation.spouse = spouse);
                     break;
                 default://MEMBER
                     invoke(saveMember(xApp.member.id, eApp.member),

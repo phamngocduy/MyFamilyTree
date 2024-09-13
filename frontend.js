@@ -14,14 +14,14 @@ window.addEventListener('init', function() {
             };
         },
         methods: {
-            initChild(member) {
-                this.member = member;
+            initChild(family) {
+                this.relation = family;
                 eApp.category = 'CHILD';
                 eApp.member = {};
                 window.modal.show();
             },
-            initSpouse(member) {
-                this.member = member;
+            initSpouse(family) {
+                this.relation = family;
                 eApp.category = 'SPOUSE';
                 eApp.member = {};
                 window.modal.show();
@@ -82,5 +82,4 @@ window.addEventListener('init', function() {
     }).mount('#modal');
     
     window.modal = bootstrap.Modal.getOrCreateInstance('#modal');
-    //document.getElementById('showModal').click()
 });
