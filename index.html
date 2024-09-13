@@ -8,7 +8,6 @@
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.prod.js"></script>
-    <script src="config.js"></script>
 </head>
 <body>
     <div id="blocker" class="align-items-center text-center bg-white opacity-100 float-start position-absolute start-0 end-0 top-0 bottom-0" style="cursor:wait;display:flex;z-index:2000;">
@@ -47,23 +46,28 @@
                 </a>
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
-                        <a href="#" v-for="member in family.children" class="list-group-item list-group-item-action active">
-                            <span>{{member.details.fullname}}&nbsp;</span>
-                            <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
-                            <span>&nbsp; – &nbsp;</span>
-                            <i type="button" @click="addSpouse(member)" v-if="!member.family?.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
-                            <span v-if="member.family && member.family.spouse">
-                                <span v-bind:onclick="`window.location.assign('?q=${member.family.spouse.id}')`">{{member.family.spouse.details.fullname}}&nbsp;</span>
-                                <i type="button" @click="editMember(member.family.spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
-                            </span>
-                            <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
-                        </a>
-                        <div class="list-group-item ps-5">
-                            <ul class="list-group">
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <i type="button" v-bind:onclick="`addChild('${member?.id}')`" class="bi-person-add fs-4" data-bs-toggle="modal" data-bs-target="#modal"></i>
-                                </a>
-                            </ul>
+                        <div v-for="member in family.children" class="list-group-item border-0 p-0">
+                            <a href="#" class="list-group-item list-group-item-action active">
+                                <span>{{member.details.fullname}}&nbsp;</span>
+                                <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
+                                <span>&nbsp; – &nbsp;</span>
+                                <i type="button" @click="initSpouse(member)" v-if="!member.family?.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
+                                <span v-if="member.family?.spouse">
+                                    <span v-bind:onclick="`window.location.assign('?q=${member.family.spouse.id}')`">{{member.family.spouse.details.fullname}}&nbsp;</span>
+                                    <i type="button" @click="editMember(member.family.spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
+                                </span>
+                                <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
+                            </a>
+                            <div class="list-group-item ps-5">
+                                <ul class="list-group">
+                                    <a href="#" v-for="child in member.family?.children" class="list-group-item list-group-item-action">
+                                        {{child.details.fullname}}
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action">
+                                        <i type="button" @click="initChild(member)" class="bi-person-add fs-4"></i>
+                                    </a>
+                                </ul>
+                            </div>
                         </div>
                         <a href="#" class="list-group-item list-group-item-action">
                             <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
@@ -131,7 +135,7 @@
                             <div class="col-12">
                                 <input type="text" v-model.trim="member.address" class="form-control" placeholder="Nơi ở hiện tại">
                             </div>
-                            <button type="submit" onclick="saveMember(event)" class="d-none">Save Changes</button>
+                            <button type="submit" onclick="saveChange(event)" class="d-none">SUBMIT</button>
                         </form>
                         <form id="history" class="row g-2">
                             <div class="col-4">
@@ -175,247 +179,36 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" onclick="saveMember()" class="btn btn-primary">Lưu thông tin</button>
+                        <button type="button" onclick="saveChange()" class="btn btn-primary">Lưu thông tin</button>
                     </div>
                 </div>
             </div>
         </div>
-        <footer class="pt-5 my-5 text-muted border-top mt-auto">
+        <footer class="pt-3 my-3 text-muted border-top mt-auto">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
       </div>
 </body>
-<script type="module">
-    async function loadFirebase() {
-        const {initializeApp} = await importFirebase('app');
-        const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-        const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch} = await importFirebase('firestore');
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.user = user;
-                dispatchEvent(new CustomEvent('user'));
-                window.signOut = () => invoke(signOut(auth));
-            }
-            else window.location = 'login.html';
-        });
-
-        const db = getFirestore(app);
-        db.newDoc = async function(group) {
-            return await doc(collection(db, group));
-        }
-        db.addDoc = async function(group, json) {
-            return await addDoc(collection(db, group), json);
-        }
-        db.setDoc = async function(group, id, json) {
-            return await setDoc(doc(db, group, id), json);
-        }
-        db.getDoc = async function(group, id) {
-            return await getDoc(doc(db, group, id));
-        }
-        db.getDocs = async function(group, field, operator, value) {
-            return await getDocs(query(collection(db, group), where(field, operator, value)));
-        }
-        db.batch = async function() {
-            return await writeBatch(db);
-        }
-        window.db = db;
-    }
-
-    addEventListener('load', () =>
-        invoke(loadFirebase(), () =>
-            dispatchEvent(new CustomEvent('init')))
-    );
-</script>
+<script src="config.js"></script>
+<script src="utility.js"></script>
+<script src="backend.js"></script>
+<script src="frontend.js"></script>
 <script>
-    Array.prototype.findById = function(id) {
-        return this.find((element) => element.id == id);
-    }
-    Array.prototype.remove = function(element) {
-        return this.splice(this.indexOf(element), 1);
-    }
-
-    function blockUI(block) {
-        document.getElementById('blocker').style.display = block ? 'flex' : 'none';
-    }
-    function loadUI(block) {
-        document.getElementById('loader').style.display = block ? 'block' : 'none';
-    }
-
-    function invoke(promise, callback, blocker=blockUI) {
-        blocker(true);
-        promise.then((value) => {
-            if (callback) callback(value);
-        }).catch((error) => {
-            console.error(error);
-            alert(error.message);
-        }).finally(() => blocker(false));
-    }
-    function revoke(promise, callback) {
-        invoke(promise, callback, blocker=loadUI);
-    }
-
-    async function initMember() {
-        window.member_id = new URL(location).searchParams.get('q');
-        if (member_id != undefined) {
-            const member = await loadMember(member_id);
-            if (member != undefined)
-                return {
-                    id: member_id,
-                    details: member
-                }
-            else location.replace('.');
-        } else {
-            const members = await db.getDocs('members', 'userid', 'array-contains', user.uid);
-            if (members.size > 0) {
-                location.replace(`?q=${members.docs[0].id}`);
-            } else {
-                const member = await db.addDoc('members', {
-                    userid: [user.uid],
-                    email: user.email,
-                    phone: user.phoneNumber,
-                    fullname: user.displayName ?? 'Anonymous'
-                });
-                location.replace(`?q=${member.id}`);
-            }
-        }
-    }
-
-    async function loadMember(member_id) {
-        const member = await db.getDoc('members', member_id);
-        return member.exists() ? member.data() : undefined;
-    }
-
-    async function loadFamily(member_id) {
-        const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
-        const family = {member_id: member_id, children: []};
-        if (relations.size > 0) {
-            family.id = relations.docs[0].id;
-            const relation = relations.docs[0].data();
-            relation.parents.remove(member_id);
-            if (relation.parents.length > 0) {
-                const spouse = await loadMember(relation.parents[0]);
-                family.spouse = {
-                    id: relation.parents[0],
-                    details: spouse
-                }
-            }
-            for (const child_id of relation.children) {
-                const child = await loadMember(child_id);
-                family.children.push({
-                    id: child_id,
-                    details: child
-                });
-            }
-        };
-        return family;
-    }
-</script>
-<script>
-    window.addEventListener('init', function() {
-        const {createApp} = Vue;
-        window.xApp = createApp({
-            data() {
-                return {
-                    family: {}
-                };
-            },
-            methods: {
-                addSpouse(member) {
-                    this.member = member;
-                    eApp.category = 'ADD_SPOUSE';
-                    eApp.member = {};
-                    window.modal.show();
-                },
-                editMember(member) {
-                    this.member = member;
-                    eApp.category = 'EDIT_MEMBER';
-                    revoke(loadMember(member.id), (member) => {
-                        eApp.member = member;
-                        window.modal.show();
-                    });
-                }
-            }
-        }).mount('main');
-
-        window.eApp = createApp({
-            data() {
-                return {
-                    member: {
-                        history: [
-                            {date: '2024', details: 'My Family Tree'}
-                        ]
-                    },
-                    event_date: undefined,
-                    event_details: undefined,
-                    DATE_PATTERN: DATE_PATTERN
-                };
-            },
-            computed: {
-                sortHistory() {
-                    if (this.member.history == undefined)
-                        this.member.history = [];
-                    return this.member.history.sort(
-                        (a, b) => this.parseDate(a.date) - this.parseDate(b.date)
-                    );
-                }
-
-            },
-            methods: {
-                addEvent() {
-                    const history = document.forms['history'];
-                    if (history.reportValidity()) {
-                        this.member.history.push({
-                            date: this.event_date,
-                            details: this.event_details
-                        });
-                        this.clsEvent();
-                    }
-                },
-                delEvent(event) {
-                    this.member.history.splice(this.member.history.indexOf(event), 1);
-                },
-                clsEvent() {
-                    this.event_date = this.event_details = undefined;
-                },
-                toCanChi(ddmmyyyy) {
-                    const CAN = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
-                    const CHI = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mẹo', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'];
-                    try {
-                        const year = parseInt(ddmmyyyy.split('/').pop());
-                        return CAN[year % 10] + ' ' + CHI[year % 12];
-                    } catch (e) { }
-                },
-                parseDate(ddmmyyyy) {
-                    return Date.parse(ddmmyyyy.split('/').reverse().join('-'));
-                }
-            }
-        }).mount('#modal');
-        
-        window.modal = bootstrap.Modal.getOrCreateInstance('#modal');
-        //document.getElementById('showModal').click()
-    });
-
-    function saveMember(event) {
+    function saveChange(event) {
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
             const modal = bootstrap.Modal.getInstance('#modal');
             switch (eApp.category) {
                 case 'CHILD':
-                    await2(setChild(window.eApp.member), () => {
-                        if (window.xApp.family.children)
-                            window.xApp.family.children.push(window.eApp.member);
-                        else window.xApp.family.children = [window.eApp.member];
-                    });
+                    invoke(saveChild(xApp.member.family, eApp.member),
+                        (child) => xApp.member.family.children.push(child));
                     break;
-                case 'ADD_SPOUSE':
-                    invoke(addSpouse(xApp.member.family, eApp.member),
+                case 'SPOUSE':
+                    invoke(saveSpouse(xApp.member.family, eApp.member),
                         (spouse) => xApp.member.family.spouse = spouse);
                     break;
-                default:
-                    invoke(setMember(xApp.member.id, eApp.member),
+                default: //MEMBER
+                    invoke(saveMember(xApp.member.id, eApp.member),
                         (member) => xApp.member.details = member);
                     break;
             }
@@ -423,54 +216,9 @@
         }
     }
 
-    async function setMember(id, member) {
-        await db.setDoc('members', xApp.member.id, eApp.member);
-        return (await db.getDoc('members', xApp.member.id)).data();
-    }
-
-    async function addSpouse(family, spouse) {
-        const batch = await db.batch();
-        const relation = family.id ? await db.getDoc('relations', family.id) : await db.newDoc('relations');
-        const member = await db.newDoc('members');
-        await batch.set(member, spouse);
-        family = family.id ? relation.data() : {parents: [family.member_id], children: []};
-        family.parents.push(member.id);
-        await batch.set(relation, family);
-        await batch.commit();
-        return {
-            id: member.id,
-            details: (await db.getDoc('members', member.id)).data()
-        };
-    }
-    function addChild(parent_id) {
-        window.eApp.member = {
-            id: parent_id
-        };
-        window.eApp.type = 'CHILD';
-    }
-    async function setChild(child) {
-        const batch = await window.db.batch();
-        const parent_id = window.db.popId(child);
-        const member = await window.db.newDoc('members');
-        const relations = await window.db.getDocs('relations', 'parents', 'array-contains', child_id);
-        const relation = relations.size ? relations.docs[0] : await window.db.newDoc('relations');
-        const relation_data = relation.data();
-        if (relations.size) {
-            relation_data.children.push(member.id);
-        } else {
-            relation_data = {
-                parents: [parent_id],
-                children: [member.id]
-            };
-        }
-        await batch.set(member, child);
-        await batch.set(relation, relation_data);
-        await batch.commit();
-    }
-
-    addEventListener('user', function() {
+    addEventListener(USER, function() {
         if (user.photoURL) {
-            document.getElementById('user-photo').style.display = 'block';
+            document.getElementById('user-photo').style.display = BLOCK;
             document.getElementById('user-photo').src = user.photoURL;
         } else if (user.displayName)
             document.getElementById('user-name').textContent = user.displayName;
@@ -478,7 +226,7 @@
             document.getElementById('user-email').textContent = user.email;
         else if (user.phoneNumber)
             document.getElementById('user-phone').textContent = user.phoneNumber;
-        else document.getElementById('sign-out').style.display = 'block';
+        else document.getElementById('sign-out').style.display = BLOCK;
 
         revoke(initMember(), (member) => {
             if (!member) return false;
