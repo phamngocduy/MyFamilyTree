@@ -45,31 +45,45 @@ addEventListener(LOAD, () =>
         dispatchEvent(new CustomEvent(INIT)))
 );
 
-async function loadMember(member_id) {
-    const member = await db.getDoc('members', member_id);
+async function getMember(id) {
+    return await db.getDoc(MEMBERS, id);
+}
+async function getMembers(uid) {
+    return await db.getDocs(MEMBERS, 'userid', ARRAY_CONTAINS, uid);
+}
+async function addMember(member) {
+    return await db.addDoc(MEMBERS, member);
+}
+async function setMember(id, member) {
+    return await db.setDoc(MEMBERS, id, member);
+}
+
+async function loadMember(id) {
+    const member = await getMember(id);
     return member.exists() ? member.data() : undefined;
 }
 
 async function initMember() {
-    const member_id = new URL(location).searchParams.get(Q);
-    if (member_id != undefined) {
-        const member = await loadMember(member_id);
+    const Q = 'q';
+    const id = new URL(location).searchParams.get(Q);
+    if (id != undefined) {
+        const member = await loadMember(id);
         if (member != undefined)
             return {
-                id: member_id,
+                id: id,
                 details: member
-            }
+            };
         else location.replace('.');
     } else {
-        const members = await db.getDocs('members', 'userid', 'array-contains', user.uid);
+        const members = await getMembers(user.uid);
         if (members.size > 0) {
             location.replace(`?${Q}=${members.docs[0].id}`);
         } else {
-            const member = await db.addDoc('members', {
+            const member = await addMember({
                 userid: [user.uid],
                 email: user.email,
                 phone: user.phoneNumber,
-                fullname: user.displayName ?? 'Anonymous'
+                fullname: user[displayName] ?? 'Anonymous'
             });
             location.replace(`?${Q}=${member.id}`);
         }
@@ -77,16 +91,28 @@ async function initMember() {
 }
 
 async function saveMember(id, member) {
-    await db.setDoc('members', id, member);
+    await setMember(id, member);
     return await loadMember(id);
 }
 
+
+async function getParents(member_id) {
+    return await db.getDocs(RELATIONS, 'children', ARRAY_CONTAINS, member_id);
+}
+async function getRelations(member_id) {
+    return await db.getDocs(RELATIONS, 'parents', ARRAY_CONTAINS, member_id);
+}
+
 async function loadFamily(member_id) {
-    const relations = await db.getDocs('relations', 'parents', 'array-contains', member_id);
-    const family = {member_id: member_id, children: []};
-    if (relations.size > 0) {
-        family.id = relations.docs[0].id;
-        const relation = relations.docs[0].data();
+    const families = [];
+    const relations = await getRelations(member_id);
+    for (const docRef of relations.docs) {
+        const family = {
+            id: docRef.id,
+            member_id: member_id,
+            children: []
+        };
+        const relation = docRef.data();
         relation.parents.remove(member_id);
         if (relation.parents.length > 0) {
             const spouse = await loadMember(relation.parents[0]);
@@ -102,8 +128,12 @@ async function loadFamily(member_id) {
                 details: child
             });
         }
-    };
-    return family;
+        families.push(family);
+    }
+    return families.length ? families : [{
+        member_id: member_id,
+        children: []
+    }];
 }
 
 async function saveRelation(relation_id, holder_id, member) {

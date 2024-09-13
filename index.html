@@ -47,26 +47,29 @@
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
                         <div v-for="member in family.children" class="list-group-item border-0 p-0">
-                            <a href="#" class="list-group-item list-group-item-action active">
-                                <span>{{member.details.fullname}}&nbsp;</span>
-                                <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
-                                <span>&nbsp; – &nbsp;</span>
-                                <i type="button" @click="initSpouse(member)" v-if="!member.family?.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
-                                <span v-if="member.family?.spouse">
-                                    <span v-bind:onclick="`window.location.assign('?q=${member.family.spouse.id}')`">{{member.family.spouse.details.fullname}}&nbsp;</span>
-                                    <i type="button" @click="editMember(member.family.spouse)" class="bi-pencil text-warning" data-bs-toggle="modal" data-bs-target="#modal"></i>
-                                </span>
-                                <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
-                            </a>
-                            <div class="list-group-item ps-5">
-                                <ul class="list-group">
-                                    <a href="#" v-for="child in member.family?.children" class="list-group-item list-group-item-action">
-                                        {{child.details.fullname}}
-                                    </a>
-                                    <a href="#" class="list-group-item list-group-item-action">
-                                        <i type="button" @click="initChild(member)" class="bi-person-add fs-4"></i>
-                                    </a>
-                                </ul>
+                            <div v-for="family in member.families">
+                                <a href="#" class="list-group-item list-group-item-action active">
+                                    <span>{{member.details.fullname}}&nbsp;</span>
+                                    <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
+                                    <span>&nbsp; – &nbsp;</span>
+                                    <i type="button" @click="initSpouse(member)" v-if="!family.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
+                                    <span v-if="family.spouse">
+                                        <span v-bind:onclick="`window.location.assign('?q=${family.spouse.id}')`">{{family.spouse.details.fullname}}&nbsp;</span>
+                                        <i type="button" @click="editMember(family.spouse)" class="bi-pencil text-warning"></i>
+                                    </span>
+                                    <button id="showModal" data-bs-toggle="modal" data-bs-target="#modal">Modal</button>
+                                </a>
+                                <div class="list-group-item ps-5">
+                                    <ul class="list-group">
+                                        <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
+                                            <span>{{child.details.fullname}}&nbsp;</span>
+                                            <i type="button" @click="editMember(child)" class="bi-pencil text-warning"></i>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action">
+                                            <i type="button" @click="initChild(member)" class="bi-person-add fs-4"></i>
+                                        </a>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <a href="#" class="list-group-item list-group-item-action">
@@ -207,7 +210,7 @@
                     invoke(saveSpouse(xApp.member.family, eApp.member),
                         (spouse) => xApp.member.family.spouse = spouse);
                     break;
-                default: //MEMBER
+                default://MEMBER
                     invoke(saveMember(xApp.member.id, eApp.member),
                         (member) => xApp.member.details = member);
                     break;
@@ -231,8 +234,8 @@
         revoke(initMember(), (member) => {
             if (!member) return false;
             xApp.family.children = [member];
-            revoke(loadFamily(member.id), (family) =>
-                xApp.family.children.findById(member.id).family = family);
+            revoke(loadFamily(member.id), (families) =>
+                xApp.family.children.findById(member.id).families = families);
         });
     });
 </script>

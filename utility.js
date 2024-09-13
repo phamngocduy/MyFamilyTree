@@ -1,3 +1,4 @@
+ARRAY_CONTAINS = 'array-contains';
 BLOCK = 'block';
 DATE_PATTERN = '((0?[1-9]|1[0-9]|2[0-9])/(0?[1-9]|1[0-2])|30/(0?[13-9]|1[0-2])|31/(0?[13578]|1[02]))/(19|20)[0-9]{2}|((0?[1-9]|1[0-2])/)?(19|20)[0-9]{2}';
 FLEX = 'flex';
@@ -5,8 +6,9 @@ INDEX_HTML = 'index.html';
 INIT = 'init';
 LOAD = 'load';
 LOGIN_HTML = 'login.html';
+MEMBERS = 'members';
 NONE = 'none';
-Q = 'q';
+RELATIONS = 'relations';
 USER = 'user';
 
 Array.prototype.findById = function(id) {
