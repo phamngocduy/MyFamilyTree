@@ -163,6 +163,20 @@ async function initBackend() {
         }
         return families.length ? families : initFamilies(member_id);
     }
+
+    async function loadParents(member_id) {
+        const relations = await getParents(member_id);
+        for (const docRef of relations.docs) {
+            const parents = [];
+            for (const parent_id of docRef.data().parents)
+                parents.push({
+                    id: parent_id,
+                    details: await loadMember(parent_id)
+                });
+            return parents;
+        }
+        return [];
+    }
     
     async function initRelation(relation_id, holder_id) {
         const relation = relation_id ? await loadRelation(relation_id) : {
@@ -246,6 +260,7 @@ async function initBackend() {
         saveChild: saveChild,
         saveSpouse: saveSpouse,
         dropChild: dropChild,
-        dropSpouse: dropSpouse
+        dropSpouse: dropSpouse,
+        loadParents: loadParents,
     };
 }

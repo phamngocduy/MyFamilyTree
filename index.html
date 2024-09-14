@@ -10,6 +10,7 @@
     <script src="packages/vue/dist/vue.global.prod.js"></script>
     <style>
         .link:hover { text-decoration: underline; }
+        .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
     </style>
 </head>
 <body>
@@ -45,7 +46,16 @@
         <main id="app">
             <ul class="list-group">
                 <a href="#" class="list-group-item list-group-item-action">
-                    <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
+                    <i type="button" @click="initSpouse(family)" v-if="!family.parents?.length" class="bi-person-add fs-4"></i>
+                    <span v-if="family.parents?.length">
+                        <span v-for="(parent, index) in family.parents">
+                            <span v-if="index">&nbsp; – &nbsp;</span>
+                            <strong class="link" :onclick="`openMember('${parent.id}')`">
+                                {{parent.details.fullname}}&nbsp;
+                            </strong>
+                            <i type="button" @click="editMember(parent)" class="bi-pencil text-primary"></i>
+                        </span>
+                    </span>
                 </a>
                 <div class="list-group-item ps-5">
                     <ul class="list-group">
@@ -57,7 +67,9 @@
                                     <span>&nbsp; – &nbsp;</span>
                                     <i type="button" @click="initSpouse(family)" v-if="!family.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
                                     <span v-if="family.spouse">
-                                        <strong class="link" :onclick="`openMember('${family.spouse.id}')`">{{family.spouse.details.fullname}}</strong>&nbsp;
+                                        <strong class="link" :onclick="`openMember('${family.spouse.id}')`">
+                                            {{family.spouse.details.fullname}}&nbsp;
+                                        </strong>
                                         <i type="button" @click="editMember(family.spouse)" class="bi-pencil text-warning"></i>
                                         <i type="button" @click="dropSpouse(family, family.spouse)" class="bi-x-lg float-end text-warning"></i>
                                     </span>
@@ -65,7 +77,9 @@
                                 <div class="list-group-item ps-5">
                                     <ul class="list-group">
                                         <a href="#" v-for="child in sortMembers(family.children)" class="list-group-item list-group-item-action">
-                                            <strong class="link" :onclick="`openMember('${child.id}')`">{{child.details.fullname}}</strong>&nbsp;
+                                            <strong class="link" :onclick="`openMember('${child.id}')`">
+                                                {{child.details.fullname}}&nbsp;
+                                            </strong>
                                             <i type="button" @click="editMember(child)" class="bi-pencil text-primary"></i>
                                             <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="!child.families[0].id"></i>
                                         </a>
@@ -76,8 +90,8 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
+                        <a href="#" class="list-group-item list-group-item-action" v-if="family.parents?.length">
+                            <i type="button" class="bi-person-add fs-4"></i>
                         </a>
                     </ul>
                 </div>
@@ -247,6 +261,7 @@
             app.family.children = [member];
             revoke(api.loadFamily(member.id), (families) =>
                 app.family.children.findById(member.id).families = families);
+            revoke(api.loadParents(member.id), (parents) => app.family.parents = parents);
         });
     });
 </script>
