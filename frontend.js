@@ -20,6 +20,12 @@ window.addEventListener('init', function() {
                 eApp.member = {};
                 window.modal.show();
             },
+            initSpouse(family) {
+                this.relation = family;
+                eApp.category = 'SPOUSE';
+                eApp.member = {};
+                window.modal.show();
+            },
             dropChild(family, child) {
                 if (confirm('Do you want to delete this member?')) {
                     revoke(api.dropChild(family.id, child.id), (success) => {
@@ -31,16 +37,21 @@ window.addEventListener('init', function() {
                     });
                 }
             },
-            initSpouse(family) {
-                this.relation = family;
-                eApp.category = 'SPOUSE';
-                eApp.member = {};
-                window.modal.show();
+            dropSpouse(family, spouse) {
+                if (confirm('Do you want to delete this member?')) {
+                    revoke(api.dropSpouse(family.id, spouse.id), (success) => {
+                        if (success == true) {
+                            family.spouse = undefined;
+                            if (family.children.length == 0)
+                                family.id = undefined;
+                        }
+                    });
+                }
             },
             editMember(member) {
                 this.member = member;
                 eApp.category = 'MEMBER';
-                revoke(loadMember(member.id), (member) => {
+                revoke(api.loadMember(member.id), (member) => {
                     eApp.member = member;
                     window.modal.show();
                 });

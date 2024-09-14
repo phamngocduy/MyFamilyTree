@@ -67,6 +67,9 @@ async function initBackend() {
     async function setMember(id, member) {
         return await db.setDoc(MEMBERS, id, member);
     }
+    async function newMember() {
+        return await db.newDoc(MEMBERS);
+    }
     
     async function loadMember(id) {
         const member = await getMember(id);
@@ -117,6 +120,9 @@ async function initBackend() {
     async function getRelations(member_id) {
         return await db.getDocs(RELATIONS, 'parents', ARRAY_CONTAINS, member_id);
     }
+    async function newRelation() {
+        return await db.newDoc(RELATIONS);
+    }
 
     async function loadRelation(id) {
         const relation = await getRelation(id);
@@ -158,48 +164,64 @@ async function initBackend() {
         return families.length ? families : initFamilies(member_id);
     }
     
-    async function saveRelation(relation_id, holder_id, member) {
+    async function initRelation(relation_id, holder_id) {
+        const relation = relation_id ? await loadRelation(relation_id) : {
+            parents: [holder_id],
+            children: []
+        }
+        relation_id = relation_id ?? (await newRelation()).id;
+        const member_id = (await newMember()).id;
+        return [relation_id, member_id, relation];
+    }
+    
+    async function saveSpouse(family_id, holder_id, spouse) {
+        const [relation_id, member_id, relation] =
+            await initRelation(family_id, holder_id);
+        relation.parents.push(member_id);
+
         const batch = await db.batch();
-        if (relation_id == undefined) {
-            const relationRef = await db.newDoc('relations');
-            await batch.set(relationRef, {
-                parents: [holder_id],
-                children: []
-            });
-            relation_id = relationRef.id;
-        }
-        const relationRef = await db.refDoc('relations', relation_id);
-        const memberRef = await db.newDoc('members');
-        await batch.set(memberRef, member);
-        const relation = await db.getDoc(relationRef);
-        return [batch, relationRef, memberRef, relation.data()];
+        await batch.set(await refRelation(relation_id), relation);
+        await batch.set(await refMember(member_id), spouse);
+        await batch.commit();
+        return [{
+            id: member_id,
+            details: await loadMember(member_id)
+        }, relation_id];
     }
     
-    async function saveSpouse(family, spouse) {
-        const [batch, relationRef, spouseRef, relation] =
-            await saveRelation(family.id, family.holder_id, spouse);
-        relation.parents.push(spouseRef.id);
-        await batch.set(relationRef, relation);
+    async function saveChild(family_id, holder_id, child) {
+        const [relation_id, member_id, relation] =
+            await initRelation(family_id, holder_id);
+        relation.children.push(member_id);
+        
+        const batch = await db.batch();
+        await batch.set(await refRelation(relation_id), relation);
+        await batch.set(await refMember(member_id), child);
         await batch.commit();
-        family.id = relationRef.id;
-        return {
-            id: spouseRef.id,
-            details: await loadMember(spouseRef.id)
-        };
+        return [{
+            id: member_id,
+            details: await loadMember(member_id),
+            families: initFamilies(member_id)
+        }, relation_id];
     }
-    
-    async function saveChild(family, child) {
-        const [batch, relationRef, childRef, relation] =
-            await saveRelation(family.id, family.holder_id, child);
-        relation.children.push(childRef.id);
-        await batch.set(relationRef, relation);
+
+    async function editRelation(batch, relation_id, relation) {
+        if (relation.parents.length == 1 && relation.children.length == 0)
+            await batch.delete(await refRelation(relation_id));
+        else await batch.set(await refRelation(relation_id), relation);
+    }
+
+    async function dropSpouse(family_id, spouse_id) {
+        const relation = await loadRelation(family_id);
+        relation.parents.remove(spouse_id);
+
+        const batch = await db.batch();
+        await editRelation(batch, family_id, relation);
+        if ((await getRelations(spouse_id)).size == 1 &&
+            (await getParents(spouse_id)).size == 0)
+            await batch.delete(await refMember(spouse_id));
         await batch.commit();
-        family.id = relationRef.id;
-        return {
-            id: childRef.id,
-            details: await loadMember(childRef.id),
-            families: initFamilies(childRef.id)
-        }
+        return true;
     }
     
     async function dropChild(family_id, child_id) {
@@ -210,9 +232,7 @@ async function initBackend() {
         relation.children.remove(child_id);
     
         const batch = await db.batch();
-        if (relation.parents.length == 1 && relation.children.length == 0)
-            await batch.delete(await refRelation(family_id));
-        else await batch.set(await refRelation(family_id), relation);
+        await editRelation(batch, family_id, relation);
         await batch.delete(await refMember(child_id));
         await batch.commit();
         return true;
@@ -220,7 +240,12 @@ async function initBackend() {
 
     return {
         initMember: initMember,
+        loadMember: loadMember,
+        saveMember: saveMember,
         loadFamily: loadFamily,
-        dropChild: dropChild
+        saveChild: saveChild,
+        saveSpouse: saveSpouse,
+        dropChild: dropChild,
+        dropSpouse: dropSpouse
     };
 }

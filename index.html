@@ -59,6 +59,7 @@
                                     <span v-if="family.spouse">
                                         <strong class="link" :onclick="`openMember('${family.spouse.id}')`">{{family.spouse.details.fullname}}</strong>&nbsp;
                                         <i type="button" @click="editMember(family.spouse)" class="bi-pencil text-warning"></i>
+                                        <i type="button" @click="dropSpouse(family, family.spouse)" class="bi-x-lg float-end text-warning"></i>
                                     </span>
                                 </a>
                                 <div class="list-group-item ps-5">
@@ -208,18 +209,23 @@
     function saveChange(event) {
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
-            const modal = bootstrap.Modal.getInstance('#modal');
             switch (eApp.category) {
                 case 'CHILD':
-                    invoke(saveChild(xApp.relation, eApp.member),
-                        (child) => xApp.relation.children.push(child));
+                    revoke(api.saveChild(xApp.relation.id, xApp.relation.holder_id, eApp.member),
+                        ([child, relation_id]) => {
+                            xApp.relation.children.push(child);
+                            xApp.relation.id = relation_id;
+                    });
                     break;
                 case 'SPOUSE':
-                    invoke(saveSpouse(xApp.relation, eApp.member),
-                        (spouse) => xApp.relation.spouse = spouse);
+                    revoke(api.saveSpouse(xApp.relation.id, xApp.relation.holder_id, eApp.member),
+                        ([spouse, relation_id]) => {
+                            xApp.relation.spouse = spouse;
+                            xApp.relation.id = relation_id;
+                    });
                     break;
                 default://MEMBER
-                    invoke(saveMember(xApp.member.id, eApp.member),
+                    revoke(api.saveMember(xApp.member.id, eApp.member),
                         (member) => xApp.member.details = member);
                     break;
             }
