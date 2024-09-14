@@ -7,7 +7,7 @@ function loadUI(block) {
 
 window.addEventListener('init', function() {
     const {createApp} = Vue;
-    window.xApp = createApp({
+    window.app = createApp({
         data() {
             return {
                 family: {}
@@ -16,14 +16,14 @@ window.addEventListener('init', function() {
         methods: {
             initChild(family) {
                 this.relation = family;
-                eApp.category = 'CHILD';
-                eApp.member = {};
+                doc.category = 'CHILD';
+                doc.member = {};
                 window.modal.show();
             },
             initSpouse(family) {
                 this.relation = family;
-                eApp.category = 'SPOUSE';
-                eApp.member = {};
+                doc.category = 'SPOUSE';
+                doc.member = {};
                 window.modal.show();
             },
             dropChild(family, child) {
@@ -50,9 +50,9 @@ window.addEventListener('init', function() {
             },
             editMember(member) {
                 this.member = member;
-                eApp.category = 'MEMBER';
+                doc.category = 'MEMBER';
                 revoke(api.loadMember(member.id), (member) => {
-                    eApp.member = member;
+                    doc.member = member;
                     window.modal.show();
                 });
             },
@@ -64,7 +64,7 @@ window.addEventListener('init', function() {
         }
     }).mount('main');
 
-    window.eApp = createApp({
+    window.doc = createApp({
         data() {
             return {
                 member: {
@@ -78,7 +78,7 @@ window.addEventListener('init', function() {
             };
         },
         computed: {
-            sortHistory() {
+            timeline() {
                 if (this.member.history == undefined)
                     this.member.history = [];
                 return this.member.history.sort(

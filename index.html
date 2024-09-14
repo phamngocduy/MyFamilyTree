@@ -164,7 +164,7 @@
                                         <span v-if="member.birthplace"> tại {{member.birthplace}}.</span>
                                     </td>
                                 </tr>
-                                <tr v-for="(event, id) in sortHistory">
+                                <tr v-for="(event, id) in timeline">
                                     <td>{{event.date}}
                                     </td>
                                     <td>{{event.details}}
@@ -206,24 +206,24 @@
     function saveChange(event) {
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
-            switch (eApp.category) {
+            switch (doc.category) {
                 case 'CHILD':
-                    revoke(api.saveChild(xApp.relation.id, xApp.relation.holder_id, eApp.member),
+                    revoke(api.saveChild(app.relation.id, app.relation.holder_id, doc.member),
                         ([child, relation_id]) => {
-                            xApp.relation.children.push(child);
-                            xApp.relation.id = relation_id;
+                            app.relation.children.push(child);
+                            app.relation.id = relation_id;
                     });
                     break;
                 case 'SPOUSE':
-                    revoke(api.saveSpouse(xApp.relation.id, xApp.relation.holder_id, eApp.member),
+                    revoke(api.saveSpouse(app.relation.id, app.relation.holder_id, doc.member),
                         ([spouse, relation_id]) => {
-                            xApp.relation.spouse = spouse;
-                            xApp.relation.id = relation_id;
+                            app.relation.spouse = spouse;
+                            app.relation.id = relation_id;
                     });
                     break;
                 default://MEMBER
-                    revoke(api.saveMember(xApp.member.id, eApp.member),
-                        (member) => xApp.member.details = member);
+                    revoke(api.saveMember(app.member.id, doc.member),
+                        (member) => app.member.details = member);
                     break;
             }
             modal.hide();
@@ -244,9 +244,9 @@
 
         revoke(api.initMember(), (member) => {
             if (!member) return false;
-            xApp.family.children = [member];
+            app.family.children = [member];
             revoke(api.loadFamily(member.id), (families) =>
-                xApp.family.children.findById(member.id).families = families);
+                app.family.children.findById(member.id).families = families);
         });
     });
 </script>
