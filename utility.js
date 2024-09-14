@@ -32,6 +32,7 @@ function revoke(promise, callback) {
 }
 
 function parseDate(ddmmyyyy) {
+    ddmmyyyy = ddmmyyyy ?? `${new Date().getFullYear()}`;
     return Date.parse(ddmmyyyy.split('/').reverse().join('-'));
 }
 function toCanChi(ddmmyyyy) {

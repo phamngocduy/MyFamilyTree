@@ -55,6 +55,11 @@ window.addEventListener('init', function() {
                     eApp.member = member;
                     window.modal.show();
                 });
+            },
+            sortMembers(members) {
+                return members.sort(
+                    (a, b) => parseDate(a.details.birthday) - parseDate(b.details.birthday)
+                );
             }
         }
     }).mount('main');

@@ -64,7 +64,7 @@
                                 </a>
                                 <div class="list-group-item ps-5">
                                     <ul class="list-group">
-                                        <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
+                                        <a href="#" v-for="child in sortMembers(family.children)" class="list-group-item list-group-item-action">
                                             <strong class="link" :onclick="`openMember('${child.id}')`">{{child.details.fullname}}</strong>&nbsp;
                                             <i type="button" @click="editMember(child)" class="bi-pencil text-primary"></i>
                                             <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="!child.families[0].id"></i>
@@ -81,9 +81,6 @@
                         </a>
                     </ul>
                 </div>
-                <a href="#" class="list-group-item list-group-item-action">
-                    <img src="packages/bootstrap-icons/icons/person-add.svg" width="24px" height="24px">
-                </a>
             </ul>
         </main>
         <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
