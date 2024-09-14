@@ -20,6 +20,11 @@ window.addEventListener('init', function() {
                 eApp.member = {};
                 window.modal.show();
             },
+            dropChild(family, child) {
+                if (confirm('Do you want to delete this member?')) {
+                    family.children.remove(child);
+                }
+            },
             initSpouse(family) {
                 this.relation = family;
                 eApp.category = 'SPOUSE';

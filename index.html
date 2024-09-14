@@ -66,6 +66,7 @@
                                         <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
                                             <strong class="link" :onclick="`openMember('${child.id}')`">{{child.details.fullname}}</strong>&nbsp;
                                             <i type="button" @click="editMember(child)" class="bi-pencil text-primary"></i>
+                                            <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="!child.families[0].id"></i>
                                         </a>
                                         <a href="#" class="list-group-item list-group-item-action">
                                             <i type="button" @click="initChild(family)" class="bi-person-add fs-4"></i>

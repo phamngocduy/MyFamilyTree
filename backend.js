@@ -1,7 +1,7 @@
 async function loadFirebase() {
     const {initializeApp} = await importFirebase('app');
     const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-    const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch} = await importFirebase('firestore');
+    const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch, deleteDoc} = await importFirebase('firestore');
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -37,6 +37,9 @@ async function loadFirebase() {
     db.batch = async function() {
         return await writeBatch(db);
     }
+    db.delDoc = async function(group, id) {
+        return await deleteDoc(doc(db, group, id));
+    }
     window.db = db;
 }
 
@@ -56,6 +59,9 @@ async function addMember(member) {
 }
 async function setMember(id, member) {
     return await db.setDoc(MEMBERS, id, member);
+}
+async function delMember(id) {
+    return await db.delDoc(MEMBERS, id);
 }
 
 async function loadMember(id) {
@@ -96,6 +102,12 @@ async function saveMember(id, member) {
 }
 
 
+async function getRelation(id) {
+    return await db.getDoc(RELATIONS, id);
+}
+async function setRelation(id, relation) {
+    return await db.setDoc(RELATIONS, id, relation);
+}
 async function getParents(member_id) {
     return await db.getDocs(RELATIONS, 'children', ARRAY_CONTAINS, member_id);
 }
@@ -103,15 +115,19 @@ async function getRelations(member_id) {
     return await db.getDocs(RELATIONS, 'parents', ARRAY_CONTAINS, member_id);
 }
 
+function initFamilies(member_id, family_id) {
+    return [{
+        id: family_id,
+        holder_id: member_id,
+        children: []
+    }]
+}
+
 async function loadFamily(member_id) {
     const families = [];
     const relations = await getRelations(member_id);
     for (const docRef of relations.docs) {
-        const family = {
-            id: docRef.id,
-            member_id: member_id,
-            children: []
-        };
+        const family = initFamilies(member_id, docRef.id)[0];
         const relation = docRef.data();
         relation.parents.remove(member_id);
         if (relation.parents.length > 0) {
@@ -125,15 +141,13 @@ async function loadFamily(member_id) {
             const child = await loadMember(child_id);
             family.children.push({
                 id: child_id,
-                details: child
+                details: child,
+                families: await loadFamily(child_id)
             });
         }
         families.push(family);
     }
-    return families.length ? families : [{
-        member_id: member_id,
-        children: []
-    }];
+    return families.length ? families : initFamilies(member_id);
 }
 
 async function saveRelation(relation_id, holder_id, member) {
@@ -155,7 +169,7 @@ async function saveRelation(relation_id, holder_id, member) {
 
 async function saveSpouse(family, spouse) {
     const [batch, relationRef, spouseRef, relation] =
-        await saveRelation(family.id, family.member_id, spouse);
+        await saveRelation(family.id, family.holder_id, spouse);
     relation.parents.push(spouseRef.id);
     await batch.set(relationRef, relation);
     await batch.commit();
@@ -168,13 +182,25 @@ async function saveSpouse(family, spouse) {
 
 async function saveChild(family, child) {
     const [batch, relationRef, childRef, relation] =
-        await saveRelation(family.id, family.member_id, child);
+        await saveRelation(family.id, family.holder_id, child);
     relation.children.push(childRef.id);
     await batch.set(relationRef, relation);
     await batch.commit();
     family.id = relationRef.id;
     return {
         id: childRef.id,
-        details: await loadMember(childRef.id)
+        details: await loadMember(childRef.id),
+        families: initFamilies(childRef.id)
     }
+}
+
+async function dropChild(family, child) {
+    const batch = await db.batch();
+    const relations = await getRelations(child.id);
+    if (relations.size > 0) return false;
+    const relation = await getRelation(family.id);
+    relation.children.remove(child.id);
+    await setRelation(family.id, relation);
+    await delMember(child.id);
+    return true;
 }
