@@ -239,10 +239,10 @@
             document.getElementById('user-phone').textContent = user.phoneNumber;
         else document.getElementById('sign-out').style.display = BLOCK;
 
-        revoke(initMember(), (member) => {
+        revoke(api.initMember(), (member) => {
             if (!member) return false;
             xApp.family.children = [member];
-            revoke(loadFamily(member.id), (families) =>
+            revoke(api.loadFamily(member.id), (families) =>
                 xApp.family.children.findById(member.id).families = families);
         });
     });

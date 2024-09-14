@@ -22,7 +22,13 @@ window.addEventListener('init', function() {
             },
             dropChild(family, child) {
                 if (confirm('Do you want to delete this member?')) {
-                    family.children.remove(child);
+                    revoke(api.dropChild(family.id, child.id), (success) => {
+                        if (success == true) {
+                            family.children.remove(child);
+                            if (family.spouse == undefined && family.children.length == 0)
+                                family.id = undefined;
+                        }
+                    });
                 }
             },
             initSpouse(family) {
