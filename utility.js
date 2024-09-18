@@ -1,15 +1,9 @@
 ARRAY_CONTAINS = 'array-contains';
-BLOCK = 'block';
 DATE_PATTERN = '((0?[1-9]|1[0-9]|2[0-9])/(0?[1-9]|1[0-2])|30/(0?[13-9]|1[0-2])|31/(0?[13578]|1[02]))/(19|20)[0-9]{2}|((0?[1-9]|1[0-2])/)?(19|20)[0-9]{2}';
-FLEX = 'flex';
 INDEX_HTML = 'index.html';
-INIT = 'init';
-LOAD = 'load';
 LOGIN_HTML = 'login.html';
 MEMBERS = 'members';
-NONE = 'none';
 RELATIONS = 'relations';
-USER = 'user';
 
 Array.prototype.findById = function(id) {
     return this.find((element) => element.id == id);
@@ -18,17 +12,14 @@ Array.prototype.remove = function(element) {
     return this.splice(this.indexOf(element), 1);
 }
 
-function invoke(promise, callback, blocker=blockUI) {
-    blocker(true);
+function invoke(promise, callback) {
+    loadUI(true);
     promise.then((value) => {
         if (callback) callback(value);
     }).catch((error) => {
         console.error(error);
         alert(error.message);
-    }).finally(() => blocker(false));
-}
-function revoke(promise, callback) {
-    invoke(promise, callback, blocker=loadUI);
+    }).finally(() => loadUI(false));
 }
 
 function parseDate(ddmmyyyy) {
