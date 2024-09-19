@@ -8,7 +8,7 @@
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        .link:hover { text-decoration: underline; }
+        .link:hover { text-decoration: underline; cursor: pointer; }
         .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
     </style>
 </head>
@@ -35,15 +35,15 @@
                 <button id="sign-out" onclick="signOut()" class="btn btn-light" style="display:none;">Sign Out</button>
             </div>
         </header>
-        <div class="mb-4">
+        <div class="mb-3">
             <div class="form-check form-switch float-end">
-                <input id="editor" type="checkbox" class="form-check-input" onclick="editor(this)" checked>
-                <label for="editor"><i type="button" class="bi-pencil text-warning"></i></label>
+                <input id="editable" type="checkbox" class="form-check-input link" onclick="editable(this)" checked>
+                <label for="editable"><i type="button" class="bi-pencil text-warning"></i></label>
             </div>
         </div>
         <main id="vue">
             <ul class="list-group">
-                <member v-for="child in family.children" :self="child" :editor="editor"/>
+                <member v-for="child in family.children" :self="child" :editor="editor"></member>
             </ul>
         </main>
         <main id="app" class="d-none">
@@ -210,21 +210,31 @@
         </footer>
     </div>
 </body>
+<template id="creator" class="d-none">
+    <i type="button" :class="`bi-person-add fs-4 ${primary ? 'text-warning' : 'text-primary'}`"></i>
+</template>
+<template id="updator" class="d-none">
+    <span>&nbsp;&nbsp;</span>
+    <i type="button" :class="`bi-pencil ${primary ? 'text-warning' : 'text-primary'}`"></i>
+</template>
 <template id="member" class="d-none">
-    <a href="#" class="list-group-item list-group-item-action">
+    <a href="#" :class="`list-group-item list-group-item-action ${self.id == window.query ? 'active' : ''}`">
         <strong>{{self.details.fullname}}</strong>
+        <updator :member="self" :primary="self.id == window.query" v-if="editor"></updator>
         <span>&nbsp; – &nbsp;</span>
         <span v-if="self.families?.length">
-            <strong>{{self.families[0].spouse.details.fullname}}</strong>
+            <strong class="link">{{self.families[0].spouse.details.fullname}}</strong>
+            <updator :member="self.families[0].spouse" :primary="self.id == window.query" v-if="editor"></updator>
         </span>
     </a>
     <div class="list-group-item ps-5">
         <ul class="list-group">
             <a href="#" v-for="child in self.families[0].children" class="list-group-item list-group-item-action" v-if="self.families?.length">
-                <strong>{{child.details.fullname}}</strong>
+                <strong class="link">{{child.details.fullname}}</strong>
+                <updator :member="child" v-if="editor"></updator>
             </a>
             <a href="#" class="list-group-item list-group-item-action" v-if="editor">
-                <i type="button" class="bi-person-add fs-4"></i>
+                <creator v-if="editor"></creator>
             </a>
         </ul>
     </div>
@@ -235,15 +245,15 @@
     function loadUI(block) {
         document.getElementById('spinner').style.display = block ? 'block' : 'none';
     }
-    function editor(element) {
-        web.editor = element.checked;
+    function editable(element) {
+        app.editor = element.checked;
     }
 </script>
 <script type="module">
     import backend from './backend.js';
     import frontend from './frontend.js';
     window.api = backend;
-    window.web = frontend.mount('#vue');
+    window.app = frontend.mount('#vue');
 </script>
 <script>
     function openMember(id) {
@@ -294,9 +304,9 @@
         invoke(api.initMember(), (member) => {
             if (!member) return false;
             else window.query = member.id;
-            web.family.children = [member];
+            app.family.children = [member];
             invoke(api.loadFamily(member.id), (families) =>
-                web.family.children.findById(member.id).families = families);
+                app.family.children.findById(member.id).families = families);
             //revoke(api.loadParents(member.id), (parents) => app.family.parents = parents);
         });
     });
