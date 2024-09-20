@@ -12,6 +12,9 @@ Array.prototype.remove = function(element) {
     return this.splice(this.indexOf(element), 1);
 }
 
+window.if = (condition, return1, return2) =>
+    condition ? return1 : return2;
+
 function invoke(promise, callback) {
     loadUI(true);
     promise.then((value) => {

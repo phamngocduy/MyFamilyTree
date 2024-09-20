@@ -28,8 +28,13 @@
                         <div id="user-email"></div>
                         <div id="user-phone"></div>
                     </div>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" onclick="signOut()" class="dropdown-item">Sign Out</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a href="#" onclick="signOut()" class="dropdown-item">
+                                <span>Sign Out</span>
+                                <i class="bi-person-walking float-end"></i>
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <button id="sign-out" onclick="signOut()" class="btn btn-light" style="display:none;">Sign Out</button>
@@ -43,8 +48,113 @@
         </div>
         <main id="vue">
             <ul class="list-group">
-                <member v-for="child in family.children" :self="child" :editor="editor"></member>
+                <family v-for="child in family.children" :self="child" :editable="editable"></family>
             </ul>
+            <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <form id="member" class="row g-2">
+                                <div class="col-8">
+                                    <div class="form-floating">
+                                        <input type="text" v-model.trim="member.fullname" class="form-control" placeholder="" required>
+                                        <label>Họ và tên</label>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="form-floating">
+                                        <input type="text" v-model.trim="member.nickname" class="form-control" placeholder="">
+                                        <label>Tên gọi khác</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <input type="tel" v-model.trim="member.phone" class="form-control" placeholder="Số điện thoại">
+                                </div>
+                                <div class="col-6">
+                                    <input type="email" v-model.trim="member.email" class="form-control" placeholder="Địa chỉ email">
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Sinh năm</span>
+                                        <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">tại</span>
+                                        <input type="text" v-model.trim="member.birthplace" class="form-control" placeholder="địa phương...">
+                                        <span>&nbsp;</span>
+                                        <i data-bs-toggle="collapse" data-bs-target="#collapseDeath"
+                                        type="button" class="bi-calendar2-plus float-end text-primary"></i>
+                                    </div>
+                                </div>
+                                <div class="col-6 collapse" id="collapseDeath">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Mất ngày</span>
+                                        <input type="text" v-model.trim="member.deathday" class="form-control" :pattern="DATE_PATTERN">
+                                    </div>
+                                </div>
+                                <div class="col-6 collapse" id="collapseDeath">
+                                    <div class="input-group">
+                                        <span class="input-group-text">tại</span>
+                                        <input type="text" v-model.trim="member.deathplace" class="form-control">
+                                        <span>&nbsp;</span>
+                                        <input type="checkbox" v-model="member.deathlunar" id="btn-lunar" class="btn-check" checked autocomplete="off">
+                                        <label class="btn btn-outline-warning" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" v-model.trim="member.address" class="form-control" placeholder="Nơi ở hiện tại">
+                                </div>
+                                <button type="submit" onclick="saveChanges(event)" class="d-none">SUBMIT</button>
+                            </form>
+                            <form id="history" class="row g-2">
+                                <div class="col-4">
+                                    <label class="form-label">Tiểu sử</label>
+                                    <input type="text" v-model.trim="event_date" class="form-control" placeholder="Thời gian" :pattern="DATE_PATTERN" required>
+                                </div>
+                                <div class="col-8">
+                                    <label class="form-label float-end" type="button">
+                                        <i type="button" class="bi-x-circle text-warning" @click="clsEvent()" v-if="event_date || event_details"></i>
+                                        <span>&nbsp;&nbsp;&nbsp;</span>
+                                        <i type="button" class="bi-save text-primary" @click="addEvent()" v-if="event_date && event_details"></i>
+                                    </label>
+                                    <input type="text" v-model.trim="event_details" v-on:keyup.enter="addEvent()" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
+                                </div>
+                            </form>
+                            <table class="table table-hover table-stripe">
+                                <tbody>
+                                    <tr v-if="member.birthday">
+                                        <td>{{member.birthday}}</td>
+                                        <td>
+                                            Sinh năm {{toCanChi(member.birthday)}}<span v-if="!member.birthplace">.</span>
+                                            <span v-if="member.birthplace"> tại {{member.birthplace}}.</span>
+                                        </td>
+                                    </tr>
+                                    <tr v-for="(event, id) in timeline">
+                                        <td>{{event.date}}
+                                        </td>
+                                        <td>{{event.details}}
+                                            <i type="button" @click="delEvent(event)" class="bi-x-lg float-end text-danger"></i>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="member.deathday">
+                                        <td>{{member.deathday}}</td>
+                                        <td>
+                                            Mất ngày {{member.deathday}}<span v-if="!member.deathplace">.</span>
+                                            <span v-if="member.deathplace"> tại {{member.deathplace}}.</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" onclick="saveChanges()" class="btn btn-primary">Lưu thông tin</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
         <main id="app" class="d-none">
             <ul class="list-group">
@@ -100,145 +210,58 @@
                 </div>
             </ul>
         </main>
-        <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <form id="member1" class="row g-2">
-                            <div class="col-8">
-                                <div class="form-floating">
-                                    <input type="text" v-model.trim="member.fullname" class="form-control" placeholder="" required>
-                                    <label>Họ và tên</label>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-floating">
-                                    <input type="text" v-model.trim="member.nickname" class="form-control" placeholder="">
-                                    <label>Tên gọi khác</label>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <input type="tel" v-model.trim="member.phone" class="form-control" placeholder="Số điện thoại">
-                            </div>
-                            <div class="col-6">
-                                <input type="email" v-model.trim="member.email" class="form-control" placeholder="Địa chỉ email">
-                            </div>
-                            <div class="col-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">Sinh năm</span>
-                                    <input type="text" v-model.trim="member.birthday" class="form-control" placeholder="ngày/tháng/năm" :pattern="DATE_PATTERN">
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">tại</span>
-                                    <input type="text" v-model.trim="member.birthplace" class="form-control" placeholder="địa phương...">
-                                    <span>&nbsp;</span>
-                                    <i data-bs-toggle="collapse" data-bs-target="#collapseDeath"
-                                    type="button" class="bi-calendar2-plus float-end text-primary"></i>
-                                </div>
-                            </div>
-                            <div class="col-6 collapse" id="collapseDeath">
-                                <div class="input-group">
-                                    <span class="input-group-text">Mất ngày</span>
-                                    <input type="text" v-model.trim="member.deathday" class="form-control" :pattern="DATE_PATTERN">
-                                </div>
-                            </div>
-                            <div class="col-6 collapse" id="collapseDeath">
-                                <div class="input-group">
-                                    <span class="input-group-text">tại</span>
-                                    <input type="text" v-model.trim="member.deathplace" class="form-control">
-                                    <span>&nbsp;</span>
-                                    <input type="checkbox" v-model="member.deathlunar" id="btn-lunar" class="btn-check" checked autocomplete="off">
-                                    <label class="btn btn-outline-warning" for="btn-lunar" data-bs-toggle="tooltip" title="Âm lịch">ÂL</label>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <input type="text" v-model.trim="member.address" class="form-control" placeholder="Nơi ở hiện tại">
-                            </div>
-                            <button type="submit" onclick="saveChange(event)" class="d-none">SUBMIT</button>
-                        </form>
-                        <form id="history" class="row g-2">
-                            <div class="col-4">
-                                <label class="form-label">Tiểu sử</label>
-                                <input type="text" v-model.trim="event_date" class="form-control" placeholder="Thời gian" :pattern="DATE_PATTERN" required>
-                            </div>
-                            <div class="col-8">
-                                <label class="form-label float-end" type="button">
-                                    <i type="button" class="bi-x-circle text-warning" @click="clsEvent()" v-if="event_date || event_details"></i>
-                                    <span>&nbsp;&nbsp;&nbsp;</span>
-                                    <i type="button" class="bi-save text-primary" @click="addEvent()" v-if="event_date && event_details"></i>
-                                </label>
-                                <input type="text" v-model.trim="event_details" v-on:keyup.enter="addEvent()" class="form-control" placeholder="Thông tin/sự kiện/học tập/làm việc..." required>
-                            </div>
-                        </form>
-                        <table class="table table-hover table-stripe">
-                            <tbody>
-                                <tr v-if="member.birthday">
-                                    <td>{{member.birthday}}</td>
-                                    <td>
-                                        Sinh năm {{toCanChi(member.birthday)}}<span v-if="!member.birthplace">.</span>
-                                        <span v-if="member.birthplace"> tại {{member.birthplace}}.</span>
-                                    </td>
-                                </tr>
-                                <tr v-for="(event, id) in timeline">
-                                    <td>{{event.date}}
-                                    </td>
-                                    <td>{{event.details}}
-                                        <i type="button" @click="delEvent(event)" class="bi-x-lg float-end text-danger"></i>
-                                    </td>
-                                </tr>
-                                <tr v-if="member.deathday">
-                                    <td>{{member.deathday}}</td>
-                                    <td>
-                                        Mất ngày {{member.deathday}}<span v-if="!member.deathplace">.</span>
-                                        <span v-if="member.deathplace"> tại {{member.deathplace}}.</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" onclick="saveChange()" class="btn btn-primary">Lưu thông tin</button>
-                    </div>
-                </div>
-            </div>
-        </div>
         <footer class="pt-3 my-3 text-muted border-top mt-auto">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
     </div>
 </body>
-<template id="creator" class="d-none">
-    <i type="button" :class="`bi-person-add fs-4 ${primary ? 'text-warning' : 'text-primary'}`"></i>
-</template>
-<template id="updator" class="d-none">
-    <span>&nbsp;&nbsp;</span>
-    <i type="button" :class="`bi-pencil ${primary ? 'text-warning' : 'text-primary'}`"></i>
-</template>
-<template id="member" class="d-none">
-    <a href="#" :class="`list-group-item list-group-item-action ${self.id == window.query ? 'active' : ''}`">
-        <strong>{{self.details.fullname}}</strong>
-        <updator :member="self" :primary="self.id == window.query" v-if="editor"></updator>
-        <span>&nbsp; – &nbsp;</span>
-        <span v-if="self.families?.length">
-            <strong class="link">{{self.families[0].spouse.details.fullname}}</strong>
-            <updator :member="self.families[0].spouse" :primary="self.id == window.query" v-if="editor"></updator>
-        </span>
-    </a>
-    <div class="list-group-item ps-5">
-        <ul class="list-group">
-            <a href="#" v-for="child in self.families[0].children" class="list-group-item list-group-item-action" v-if="self.families?.length">
-                <strong class="link">{{child.details.fullname}}</strong>
-                <updator :member="child" v-if="editor"></updator>
-            </a>
-            <a href="#" class="list-group-item list-group-item-action" v-if="editor">
-                <creator v-if="editor"></creator>
-            </a>
+<vue id="member" class="d-none">
+    <span :onclick="`openMember('${self.id}')`">
+        <strong :class="window.if(self.id != window.query, 'link')">
+            {{self.details.fullname}}
+        </strong>
+    </span>
+    <span v-if="editable">&nbsp;
+        <i type="button" @click="onClick()" :class="`bi-pencil text-${this.if(isPrimary, 'warning', 'primary')}`"></i>
+        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-warning" data-bs-toggle="dropdown"></button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">
+                <span>Sửa</span>
+                <i class="bi-pencil text-primary float-end"></i>
+            </a></li>
+            <li><a class="dropdown-item" href="#">
+                <span>Xóa</span>
+                <i class="bi-x-lg text-danger float-end"></i>
+            </a></li>
         </ul>
+    </span>
+</vue>
+<vue id="family" class="d-none">
+    <div v-for="family in self.families" class="list-group">
+        <a href="#" :class="`list-group-item list-group-item-action ${this.if(isPrimary, 'active')}`">
+            <member :self="family.holder" :editable="editable"></member>
+            <span>&nbsp; – &nbsp;</span>
+            <span v-if="family.spouse">
+                <member :self="family.spouse" :primary="isPrimary" :editable="editable"></member>
+                <i type="button" @click="dropSpouse(family)" class="bi-x-lg float-end text-danger" v-if="editable"></i>
+            </span>
+            <span v-if="!family.spouse" style="vertical-align:sub;">
+                <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(isPrimary, 'warning', 'primary')}`"></i>
+            </span>
+        </a>
+        <div class="list-group-item ps-5">
+            <ul class="list-group">
+                <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
+                    <member :self="child" :editable="editable"></member>
+                    <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="editable"></i>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action" v-if="editable">
+                    <i type="button" @click="addChild(family)" class="bi-person-add fs-4 text-primary"></i>
+                </a>
+            </ul>
+        </div>
     </div>
-</template>
+</vue>
 <script src="config.js"></script>
 <script src="utility.js"></script>
 <script>
@@ -246,7 +269,7 @@
         document.getElementById('spinner').style.display = block ? 'block' : 'none';
     }
     function editable(element) {
-        app.editor = element.checked;
+        app.editable = element.checked;
     }
 </script>
 <script type="module">
@@ -254,17 +277,19 @@
     import frontend from './frontend.js';
     window.api = backend;
     window.app = frontend.mount('#vue');
+    window.modal = bootstrap.Modal.getOrCreateInstance('#modal');
 </script>
 <script>
     function openMember(id) {
-        const Q = 'q';
-        location.assign(`?${Q}=${id}`);
+        if (id != query)
+            location.assign(`?q=${id}`);
     }
 
-    function saveChange(event) {
+    function saveChanges(event) {
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
-            switch (doc.category) {
+            modal.onSubmit();
+            /*switch (doc.category) {
                 case 'CHILD':
                     revoke(api.saveChild(app.relation.id, app.relation.holder_id, doc.member),
                         ([child, relation_id]) => {
@@ -283,7 +308,7 @@
                     revoke(api.saveMember(app.member.id, doc.member),
                         (member) => app.member.details = member);
                     break;
-            }
+            }*/
             modal.hide();
         }
     }
@@ -301,13 +326,25 @@
             document.getElementById('user-phone').textContent = user.phoneNumber;
         else document.getElementById('sign-out').style.display = 'block';
 
-        invoke(api.initMember(), (member) => {
-            if (!member) return false;
-            else window.query = member.id;
-            app.family.children = [member];
-            invoke(api.loadFamily(member.id), (families) =>
-                app.family.children.findById(member.id).families = families);
-            //revoke(api.loadParents(member.id), (parents) => app.family.parents = parents);
+        const id = new URL(location).searchParams.get('q');
+        invoke(api.initMember(id, user.uid), (member) => {
+            if (member != undefined) {
+                if (member.id != id)
+                    location.replace(`?q=${member.id}`);
+                window.query = member.id;
+                invoke(api.loadFamily(member.id), (families) => {
+                    for (const family of families)
+                        family.holder = member;
+                    if (families.length == 0)
+                        families.push({
+                            holder: member,
+                            children: []
+                        });
+                    member.families = families;
+                    app.family.children = [member];
+                });
+                //revoke(api.loadParents(member.id), (parents) => app.family.parents = parents);
+            }
         });
     });
 </script>
