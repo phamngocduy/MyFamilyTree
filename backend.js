@@ -79,7 +79,7 @@ async function loadFamily(member_id, recursive=true) {
                         families: await loadFamily(child_id, false)
                     });
             }
-        }
+        } else family.counter = relation.children.length;
         families.push(family);
     }
     return families;

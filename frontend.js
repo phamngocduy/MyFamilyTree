@@ -14,31 +14,33 @@ function VueJS(id) {
 const Member = {
     ...VueJS('member'),
     props: {
-        self: Object,
+        member: Object,
         family: Object,
-        primary: Boolean,
         editable: Boolean
     },
     computed: {
-        isPrimary() {
-            return this.primary || this.self.id == window.query;
+        primary() {
+            const query = window.query;
+            return this.member.id == query || this.family?.holder.id == query;
         }
     },
     methods: {
         onUpdate() {
-            const member = this.self;
+            const member = this.member;
             window.app.member = {...member.details};
-            window.modal.show();
             window.modal.onSubmit = function() {
                 invoke(window.api.saveMember(member.id, window.app.member),
                     () => member.details = window.app.member);
             };
+            window.modal.show();
         },
         onDelete() {
             if (confirm('Do you want to delete this member?')) {
-                if (this.family.spouse === this.self)
-                    this.dropSpouse(this.family, this.family.spouse);
-                else this.dropChild(this.family, this.self);
+                const member = this.member;
+                const family = this.family;
+                if (family.spouse === member)
+                    this.dropSpouse(family, member);
+                else this.dropChild(family, member);
             }
         },
         dropChild(family, child) {
@@ -68,26 +70,27 @@ const Family = {
         Member
     },
     props: {
-        self: Object,
+        holder: Object,
+        parents: Object,
         editable: Boolean
     },
     computed: {
         primary() {
-            return this.self.id == window.query;
+            return this.holder.id == window.query;
         },
         families() {
-            if (this.self.families.length == 0)
-                this.self.families.push({children: []});
-            for (const family of this.self.families)
-                family.holder = this.self;
-            return this.self.families;
+            const holder = this.holder;
+            if (holder.families.length == 0)
+                holder.families.push({children: []});
+            for (const family of holder.families)
+                family.holder = holder;
+            return holder.families;
         }
     },
     methods: {
         addChild(family) {
             window.app.member = {};
-            window.modal.show();
-            const parent_id = this.self.id;
+            const parent_id = this.holder.id;
             window.modal.onSubmit = function() {
                 invoke(window.api.saveChild(family.id, parent_id, window.app.member),
                     ([family_id, child_id]) => {
@@ -97,12 +100,12 @@ const Family = {
                             details: window.app.member
                         })
                     });
-            }
+            };
+            window.modal.show();
         },
         addSpouse(family) {
             window.app.member = {};
-            window.modal.show();
-            const holder_id = this.self.id;
+            const holder_id = this.holder.id;
             window.modal.onSubmit = function() {
                 invoke(window.api.saveSpouse(family.id, holder_id, window.app.member),
                     ([family_id, spouse_id]) => {
@@ -112,7 +115,8 @@ const Family = {
                             details: window.app.member
                         }
                     });
-            }
+            };
+            window.modal.show();
         }
     }
 };
