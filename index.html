@@ -42,12 +42,13 @@
         </header>
         <div class="mb-3">
             <div class="form-check form-switch float-end">
-                <input id="editable" type="checkbox" class="form-check-input link" onclick="editable(this)" checked>
+                <input id="editable" type="checkbox" class="form-check-input link" onclick="editable(this)" >
                 <label for="editable"><i type="button" class="bi-pencil text-warning"></i></label>
             </div>
         </div>
         <main id="vue">
             <ul class="list-group">
+                <a href="#" class="list-group-item list-group-item-action">Parents</a>
                 <family v-for="child in family.children" :self="child" :editable="editable"></family>
             </ul>
             <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
@@ -156,60 +157,6 @@
                 </div>
             </div>
         </main>
-        <main id="app" class="d-none">
-            <ul class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">
-                    <i type="button" @click="initSpouse(family)" v-if="!family.parents?.length" class="bi-person-add fs-4"></i>
-                    <span v-if="family.parents?.length">
-                        <span v-for="(parent, index) in family.parents">
-                            <span v-if="index">&nbsp; – &nbsp;</span>
-                            <strong class="link" :onclick="`openMember('${parent.id}')`">
-                                {{parent.details.fullname}}&nbsp;
-                            </strong>
-                            <i type="button" @click="editMember(parent)" class="bi-pencil text-primary"></i>
-                        </span>
-                    </span>
-                </a>
-                <div class="list-group-item ps-5">
-                    <ul class="list-group">
-                        <div v-for="member in family.children" class="list-group-item border-0 p-0">
-                            <div v-for="family in member.families">
-                                <a href="#" class="list-group-item list-group-item-action active">
-                                    <strong>{{member.details.fullname}}&nbsp;</strong>
-                                    <i type="button" @click="editMember(member)" class="bi-pencil text-warning"></i>
-                                    <span>&nbsp; – &nbsp;</span>
-                                    <i type="button" @click="initSpouse(family)" v-if="!family.spouse" class="bi-person-add fs-4" style="vertical-align:sub;"></i>
-                                    <span v-if="family.spouse">
-                                        <strong class="link" :onclick="`openMember('${family.spouse.id}')`">
-                                            {{family.spouse.details.fullname}}&nbsp;
-                                        </strong>
-                                        <i type="button" @click="editMember(family.spouse)" class="bi-pencil text-warning"></i>
-                                        <i type="button" @click="dropSpouse(family, family.spouse)" class="bi-x-lg float-end text-warning"></i>
-                                    </span>
-                                </a>
-                                <div class="list-group-item ps-5">
-                                    <ul class="list-group">
-                                        <a href="#" v-for="child in sortMembers(family.children)" class="list-group-item list-group-item-action">
-                                            <strong class="link" :onclick="`openMember('${child.id}')`">
-                                                {{child.details.fullname}}&nbsp;
-                                            </strong>
-                                            <i type="button" @click="editMember(child)" class="bi-pencil text-primary"></i>
-                                            <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="!child.families[0].id"></i>
-                                        </a>
-                                        <a href="#" class="list-group-item list-group-item-action">
-                                            <i type="button" @click="initChild(family)" class="bi-person-add fs-4"></i>
-                                        </a>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <a href="#" class="list-group-item list-group-item-action" v-if="family.parents?.length">
-                            <i type="button" class="bi-person-add fs-4"></i>
-                        </a>
-                    </ul>
-                </div>
-            </ul>
-        </main>
         <footer class="pt-3 my-3 text-muted border-top mt-auto">
             Created by <em><mark type="button">Duy_abu</mark></em> &middot; &copy; 2024
         </footer>
@@ -221,15 +168,14 @@
             {{self.details.fullname}}
         </strong>
     </span>
-    <span v-if="editable">&nbsp;
-        <i type="button" @click="onClick()" :class="`bi-pencil text-${this.if(isPrimary, 'warning', 'primary')}`"></i>
-        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-warning" data-bs-toggle="dropdown"></button>
+    <span v-if="editable">
+        <button type="button" :class="`btn btn-sm dropdown-toggle dropdown-toggle-split text-${this.if(isPrimary, 'warning', 'primary')}`" data-bs-toggle="dropdown"></button>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">
+            <li><a href="#" @click="onUpdate" class="dropdown-item">
                 <span>Sửa</span>
                 <i class="bi-pencil text-primary float-end"></i>
             </a></li>
-            <li><a class="dropdown-item" href="#">
+            <li><a href="#" @click="onDelete" class="dropdown-item">
                 <span>Xóa</span>
                 <i class="bi-x-lg text-danger float-end"></i>
             </a></li>
@@ -237,28 +183,28 @@
     </span>
 </vue>
 <vue id="family" class="d-none">
-    <div v-for="family in self.families" class="list-group">
-        <a href="#" :class="`list-group-item list-group-item-action ${this.if(isPrimary, 'active')}`">
-            <member :self="family.holder" :editable="editable"></member>
-            <span>&nbsp; – &nbsp;</span>
-            <span v-if="family.spouse">
-                <member :self="family.spouse" :primary="isPrimary" :editable="editable"></member>
-                <i type="button" @click="dropSpouse(family)" class="bi-x-lg float-end text-danger" v-if="editable"></i>
-            </span>
-            <span v-if="!family.spouse" style="vertical-align:sub;">
-                <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(isPrimary, 'warning', 'primary')}`"></i>
-            </span>
-        </a>
-        <div class="list-group-item ps-5">
-            <ul class="list-group">
-                <a href="#" v-for="child in family.children" class="list-group-item list-group-item-action">
-                    <member :self="child" :editable="editable"></member>
-                    <i type="button" @click="dropChild(family, child)" class="bi-x-lg float-end text-danger" v-if="editable"></i>
-                </a>
+    <div v-for="family in families" class="list-group-item">
+        <div class="list-group ps-5">
+            <a href="#" :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
+                <member :self="family.holder" :editable="editable"></member>
+                <span v-if="family.spouse || editable">
+                    <span v-if="!editable">&nbsp;&nbsp;</span>
+                    <span>&amp;&nbsp;&nbsp;</span>
+                    <span v-if="editable">&nbsp;&nbsp;</span>
+                </span>
+                <span v-if="family.spouse">
+                    <member :self="family.spouse" :primary="primary" :family="family" :editable="editable"></member>
+                </span>
+                <span v-if="!family.spouse && editable" style="vertical-align:sub;">
+                    <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
+                </span>
+            </a>
+            <div v-if="family.spouse && (family.children.length || editable)">
+                <family v-for="child in family.children" :self="child" :editable="editable"></family>
                 <a href="#" class="list-group-item list-group-item-action" v-if="editable">
                     <i type="button" @click="addChild(family)" class="bi-person-add fs-4 text-primary"></i>
                 </a>
-            </ul>
+            </div>
         </div>
     </div>
 </vue>
@@ -269,8 +215,12 @@
         document.getElementById('spinner').style.display = block ? 'block' : 'none';
     }
     function editable(element) {
-        app.editable = element.checked;
+        localStorage.setItem(EDITABLE, app.editable = element.checked);
     }
+    addEventListener('load', () => {
+        const editable = localStorage.getItem(EDITABLE);
+        document.getElementById(EDITABLE).checked = (editable === 'true');
+    });
 </script>
 <script type="module">
     import backend from './backend.js';
@@ -278,6 +228,7 @@
     window.api = backend;
     window.app = frontend.mount('#vue');
     window.modal = bootstrap.Modal.getOrCreateInstance('#modal');
+    window.app.editable = document.getElementById('editable').checked;
 </script>
 <script>
     function openMember(id) {
@@ -289,26 +240,6 @@
         if (event) event.preventDefault();
         if (document.forms['member'].reportValidity()) {
             modal.onSubmit();
-            /*switch (doc.category) {
-                case 'CHILD':
-                    revoke(api.saveChild(app.relation.id, app.relation.holder_id, doc.member),
-                        ([child, relation_id]) => {
-                            app.relation.children.push(child);
-                            app.relation.id = relation_id;
-                    });
-                    break;
-                case 'SPOUSE':
-                    revoke(api.saveSpouse(app.relation.id, app.relation.holder_id, doc.member),
-                        ([spouse, relation_id]) => {
-                            app.relation.spouse = spouse;
-                            app.relation.id = relation_id;
-                    });
-                    break;
-                default://MEMBER
-                    revoke(api.saveMember(app.member.id, doc.member),
-                        (member) => app.member.details = member);
-                    break;
-            }*/
             modal.hide();
         }
     }
@@ -333,17 +264,9 @@
                     location.replace(`?q=${member.id}`);
                 window.query = member.id;
                 invoke(api.loadFamily(member.id), (families) => {
-                    for (const family of families)
-                        family.holder = member;
-                    if (families.length == 0)
-                        families.push({
-                            holder: member,
-                            children: []
-                        });
                     member.families = families;
                     app.family.children = [member];
                 });
-                //revoke(api.loadParents(member.id), (parents) => app.family.parents = parents);
             }
         });
     });

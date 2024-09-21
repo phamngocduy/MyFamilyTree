@@ -2,6 +2,7 @@ const {createApp} = await import('./packages/vue/dist/vue.esm-browser.js');
 
 function VueJS(id) {
     return {
+        name: id,
         created() {
             this.if = window.if;
             this.window = window;
@@ -14,6 +15,7 @@ const Member = {
     ...VueJS('member'),
     props: {
         self: Object,
+        family: Object,
         primary: Boolean,
         editable: Boolean
     },
@@ -23,7 +25,7 @@ const Member = {
         }
     },
     methods: {
-        onClick() {
+        onUpdate() {
             const member = this.self;
             window.app.member = {...member.details};
             window.modal.show();
@@ -31,6 +33,31 @@ const Member = {
                 invoke(window.api.saveMember(member.id, window.app.member),
                     () => member.details = window.app.member);
             };
+        },
+        onDelete() {
+            if (confirm('Do you want to delete this member?')) {
+                if (this.family.spouse === this.self)
+                    this.dropSpouse(this.family, this.family.spouse);
+                else this.dropChild(this.family, this.self);
+            }
+        },
+        dropChild(family, child) {
+            invoke(api.dropChild(family.id, child.id), (success) => {
+                if (success == true) {
+                    family.children.remove(child);
+                    if (family.spouse == undefined && family.children.length == 0)
+                        family.id = undefined;
+                }
+            });
+        },
+        dropSpouse(family, spouse) {
+            invoke(api.dropSpouse(family.id, spouse.id), (success) => {
+                if (success == true) {
+                    family.spouse = undefined;
+                    if (family.children.length == 0)
+                        family.id = undefined;
+                }
+            });
         }
     }
 };
@@ -45,8 +72,15 @@ const Family = {
         editable: Boolean
     },
     computed: {
-        isPrimary() {
+        primary() {
             return this.self.id == window.query;
+        },
+        families() {
+            if (this.self.families.length == 0)
+                this.self.families.push({children: []});
+            for (const family of this.self.families)
+                family.holder = this.self;
+            return this.self.families;
         }
     },
     methods: {
@@ -78,28 +112,6 @@ const Family = {
                             details: window.app.member
                         }
                     });
-            }
-        },
-        dropChild(family, child) {
-            if (confirm('Do you want to delete this member?')) {
-                invoke(api.dropChild(family.id, child.id), (success) => {
-                    if (success == true) {
-                        family.children.remove(child);
-                        if (family.spouse == undefined && family.children.length == 0)
-                            family.id = undefined;
-                    }
-                });
-            }
-        },
-        dropSpouse(family) {
-            if (confirm('Do you want to delete this member?')) {
-                invoke(api.dropSpouse(family.id, family.spouse.id), (success) => {
-                    if (success == true) {
-                        family.spouse = undefined;
-                        if (family.children.length == 0)
-                            family.id = undefined;
-                    }
-                });
             }
         }
     }

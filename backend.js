@@ -1,6 +1,6 @@
 const {initializeApp} = await importFirebase('app');
 const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
-const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch, deleteDoc} = await importFirebase('firestore');
+const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch, or} = await importFirebase('firestore');
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -18,12 +18,14 @@ const ref = (group, id) => doc(db, group, id);
 const select = (group) => collection(db, group);
 const newDocument = (group) => doc(select(group));
 const getDocument = (group, id) => getDoc(ref(group, id));
+const addDocument = (group, document) => addDoc(select(group), document);
 const setDocument = (group, id, document) => setDoc(ref(group, id), document);
-const getDocuments = (group, ...clauses) => getDocs(query(select(group), clauses));
+const getDocuments = (group, ...clauses) => getDocs(query(select(group), ...clauses));
 
 const newMember = () => newDocument(MEMBERS);
 const refMember = (id) => ref(MEMBERS, id);
 const getMember = (id) => getDocument(MEMBERS, id);
+const addMember = (member) => addDocument(MEMBERS, member);
 const setMember = (id, member) => setDocument(MEMBERS, id, member);
 const getMembers = (uid) => getDocuments(MEMBERS, where('userid', ARRAY_CONTAINS, uid));
 
@@ -31,8 +33,8 @@ const newRelation = () => newDocument(RELATIONS);
 const refRelation = (id) => ref(RELATIONS, id);
 const getRelation = async (id) => (await getDocument(RELATIONS, id)).data();
 const getRelations = (mid) => getDocuments(RELATIONS, where('parents', ARRAY_CONTAINS, mid));
-const allRelations = (mid) => getDocuments(RELATIONS, where('parents', ARRAY_CONTAINS, mid),
-                                                    where('children', ARRAY_CONTAINS, mid));
+const allRelations = (mid) => getDocuments(RELATIONS, or(
+    where('parents', ARRAY_CONTAINS, mid), where('children', ARRAY_CONTAINS, mid)));
 const getParents = (mid) => getDocuments(RELATIONS, where('children', ARRAY_CONTAINS, mid));
 
 async function initRelation(relation_id, member_id) {
@@ -47,6 +49,40 @@ async function editRelation(batch, relation_id, relation) {
     if (relation.parents.length == 1 && relation.children.length == 0)
         await batch.delete(refRelation(relation_id));
     else await batch.set(refRelation(relation_id), relation);
+}
+
+async function loadFamily(member_id, recursive=true) {
+    const families = [];
+    const relations = await getRelations(member_id);
+    for (const doc of relations.docs) {
+        const family = {
+            id: doc.id,
+            children: []
+        };
+        const relation = doc.data();
+        relation.parents.remove(member_id);
+        if (relation.parents.length > 0) {
+            const spouse = await getMember(relation.parents[0]);
+            if (spouse.exists())
+                family.spouse = {
+                    id: relation.parents[0],
+                    details: spouse.data()
+                }
+        }
+        if (recursive == true) {
+            for (const child_id of relation.children) {
+                const child = await getMember(child_id);
+                if (child.exists())
+                    family.children.push({
+                        id: child_id,
+                        details: child.data(),
+                        families: await loadFamily(child_id, false)
+                    });
+            }
+        }
+        families.push(family);
+    }
+    return families;
 }
 
 export default {
@@ -65,8 +101,9 @@ export default {
                 userid: [user.uid],
                 email: user.email,
                 phone: user.phoneNumber,
-                fullname: user[displayName] ?? 'Anonymous'
+                fullname: user.displayName ?? 'Anonymous'
             });
+            return {id: member.id}
         } else return {
             id: members.docs[0].id,
             details: members.docs[0].data()
@@ -76,37 +113,7 @@ export default {
     saveMember: async (id, member) =>
         await setMember(id, member),
 
-    loadFamily: async (member_id) => {
-        const families = [];
-        const relations = await getRelations(member_id);
-        for (const doc of relations.docs) {
-            const family = {
-                id: doc.id,
-                children: []
-            };
-            const relation = doc.data();
-            relation.parents.remove(member_id);
-            if (relation.parents.length > 0) {
-                const spouse = await getMember(relation.parents[0]);
-                if (spouse.exists())
-                    family.spouse = {
-                        id: relation.parents[0],
-                        details: spouse.data()
-                    }
-            }
-            for (const child_id of relation.children) {
-                const child = await getMember(child_id);
-                if (child.exists())
-                    family.children.push({
-                        id: child_id,
-                        details: child.data(),
-                        families: []
-                    });
-            }
-            families.push(family);
-        }
-        return families;
-    },
+    loadFamily: loadFamily,
 
     saveChild: async (family_id, parent_id, child) => {
         const [relation_id, relation, child_id] =

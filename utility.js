@@ -1,5 +1,6 @@
 ARRAY_CONTAINS = 'array-contains';
 DATE_PATTERN = '((0?[1-9]|1[0-9]|2[0-9])/(0?[1-9]|1[0-2])|30/(0?[13-9]|1[0-2])|31/(0?[13578]|1[02]))/(19|20)[0-9]{2}|((0?[1-9]|1[0-2])/)?(19|20)[0-9]{2}';
+EDITABLE = 'editable';
 INDEX_HTML = 'index.html';
 LOGIN_HTML = 'login.html';
 MEMBERS = 'members';
