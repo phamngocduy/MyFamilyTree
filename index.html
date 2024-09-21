@@ -49,7 +49,11 @@
         <main id="vue">
             <ul class="list-group">
                 <a href="#" class="list-group-item list-group-item-action">Parents</a>
-                <family v-for="child in family.children" :self="child" :editable="editable"></family>
+                <div class="list-group-item">
+                    <ul class="list-group ps-5">
+                        <family v-for="child in family.children" :self="child" :editable="editable"></family>
+                    </ul>
+                </div>
             </ul>
             <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
                 <div class="modal-dialog">
@@ -183,30 +187,30 @@
     </span>
 </vue>
 <vue id="family" class="d-none">
-    <div v-for="family in families" class="list-group-item">
-        <div class="list-group ps-5">
-            <a href="#" :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
-                <member :self="family.holder" :editable="editable"></member>
-                <span v-if="family.spouse || editable">
-                    <span v-if="!editable">&nbsp;&nbsp;</span>
-                    <span>&amp;&nbsp;&nbsp;</span>
-                    <span v-if="editable">&nbsp;&nbsp;</span>
-                </span>
-                <span v-if="family.spouse">
-                    <member :self="family.spouse" :primary="primary" :family="family" :editable="editable"></member>
-                </span>
-                <span v-if="!family.spouse && editable" style="vertical-align:sub;">
-                    <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
-                </span>
-            </a>
-            <div v-if="family.spouse && (family.children.length || editable)">
+    <template v-for="family in families">
+        <a href="#" :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
+            <member :self="family.holder" :editable="editable"></member>
+            <span v-if="family.spouse || editable">
+                <span v-if="!editable">&nbsp;&nbsp;</span>
+                <span>&amp;&nbsp;&nbsp;</span>
+                <span v-if="editable">&nbsp;&nbsp;</span>
+            </span>
+            <span v-if="family.spouse">
+                <member :self="family.spouse" :primary="primary" :family="family" :editable="editable"></member>
+            </span>
+            <span v-if="!family.spouse && editable" style="vertical-align:sub;">
+                <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
+            </span>
+        </a>
+        <div class="list-group-item" v-if="family.spouse && (family.children.length || editable)">
+            <ul class="list-group ps-5">
                 <family v-for="child in family.children" :self="child" :editable="editable"></family>
                 <a href="#" class="list-group-item list-group-item-action" v-if="editable">
                     <i type="button" @click="addChild(family)" class="bi-person-add fs-4 text-primary"></i>
                 </a>
-            </div>
+            </ul>
         </div>
-    </div>
+    </template>
 </vue>
 <script src="config.js"></script>
 <script src="utility.js"></script>
