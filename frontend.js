@@ -21,7 +21,9 @@ const Member = {
     computed: {
         primary() {
             const query = window.query;
-            return this.member.id == query || this.family?.holder.id == query;
+            const holder = this.family?.holder;
+            const spouse = this.family?.spouse;
+            return this.member.id == query || (this.member == spouse && holder?.id == query);
         }
     },
     methods: {
