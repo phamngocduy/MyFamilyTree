@@ -201,11 +201,11 @@
             <span v-if="!family.spouse && editable" style="vertical-align:sub;">
                 <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
             </span>
-            <span class="badge text-bg-primary float-end" v-if="!family.children.length">
+            <span class="badge text-bg-primary float-end" v-if="family.counter">
                 {{family.counter}}
             </span>
         </a>
-        <div class="list-group-item" v-if="family.spouse && (family.children.length || editable)">
+        <div class="list-group-item" v-if="family.spouse && !family.counter && editable">
             <ul class="list-group ps-5">
                 <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
                 <a href="#" class="list-group-item list-group-item-action" v-if="editable">

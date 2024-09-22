@@ -99,6 +99,7 @@ const Family = {
                         family.id = family_id;
                         family.children.push({
                             id: child_id,
+                            families: [],
                             details: window.app.member
                         })
                     });
