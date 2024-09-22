@@ -16,14 +16,17 @@ const Member = {
     props: {
         member: Object,
         family: Object,
-        editable: Boolean
+        editable: Boolean,
+        droppable: Boolean
     },
     computed: {
         primary() {
             const query = window.query;
-            const holder = this.family?.holder;
-            const spouse = this.family?.spouse;
-            return this.member.id == query || (this.member == spouse && holder?.id == query);
+            const member = this.member;
+            const family = this.family;
+            const holder = family.holder;
+            const spouse = family.spouse;
+            return member.id == query || (member == spouse && holder?.id == query);
         }
     },
     methods: {

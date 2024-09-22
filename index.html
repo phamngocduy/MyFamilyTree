@@ -179,24 +179,26 @@
                 <span>Sửa</span>
                 <i class="bi-pencil text-primary float-end"></i>
             </a></li>
-            <li><a href="#" @click="onDelete" class="dropdown-item">
-                <span>Xóa</span>
-                <i class="bi-x-lg text-danger float-end"></i>
-            </a></li>
+            <li v-if="droppable">
+                <a href="#" @click="onDelete" class="dropdown-item">
+                    <span>Xóa</span>
+                    <i class="bi-x-lg text-danger float-end"></i>
+                </a>
+            </li>
         </ul>
     </span>
 </vue>
 <vue id="family" class="d-none">
     <template v-for="family in families">
         <a href="#" :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
-            <member :member="family.holder" :family="parents" :editable="editable"></member>
+            <member :member="family.holder" :family="parents" :editable="editable" :droppable="!family.spouse"></member>
             <span v-if="family.spouse || editable">
                 <span v-if="!editable">&nbsp;&nbsp;</span>
                 <span>&amp;&nbsp;&nbsp;</span>
                 <span v-if="editable">&nbsp;&nbsp;</span>
             </span>
             <span v-if="family.spouse">
-                <member :member="family.spouse" :family="family" :editable="editable"></member>
+                <member :member="family.spouse" :family="family" :editable="editable" :droppable="!family.counter && !family.children.length"></member>
             </span>
             <span v-if="!family.spouse && editable" style="vertical-align:sub;">
                 <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
