@@ -8,112 +8,147 @@
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.js"></script>
+    <style>
+   ul.tree li {
+     padding: 0 7px;
+     border-left:1px solid red;
+
+   }
+   ul.tree li:last-child {
+       border-left:none;
+   }
+   ul.tree li:before {
+      position:relative;
+      top:-0.3em;
+      height:1em;
+      width:12px;
+
+      border-bottom:1px solid rgb(100,100,100);
+      content:"";
+      display:inline-block;
+      left:-7px;
+   }
+   ul.tree li:last-child:before {
+      border-left:1px solid rgb(100,100,100);   
+   }
+
+   li.list-group-item-action:before {
+    position:absolute;
+    left:-2rem;
+    top: -1.3rem;
+      height:2.6rem;
+      width:2rem;
+
+      border-left:2px solid black;
+      border-bottom:2px solid black;
+      content:"";
+   }
+   li:not(.list-group-item-action):not(:last-child):before {
+    position:absolute;
+    left:-2rem;
+    top: -1.2rem;
+      height:100%;
+
+      border-left:2px solid black;
+      content:"";
+   }
+   li.list-group-item:first-child:before {
+    position:absolute;
+    left:-2rem;
+    top:-0.6rem;
+      height:2rem;
+      width:2rem;
+
+      border-left:2px solid black;
+      border-bottom:2px solid black;
+      content:"";
+   }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <Component :msg="greeting"></Component>
-        <Treenode v-for="node in nodes" :key="node.id" :node="node"></Treenode>
-    </div>
-    <template id="TreeNode">
-        <div>
-            {{node.label}}
-        </div>
-        <div v-if="hasChildren">
-            <TreeNode v-for="child in node.children" :key="child.id" :node="child"></TreeNode>
-        </div>
-    </template>
-    <template id="ChildComp">
-        <h2>{{msg}}</h2>
-    </template>
+    <ul class="tree">
+        <li>Animals
+         <ul>
+          <li>Birds</li>
+          <li>Mammals
+           <ul>
+            <li>Elephant</li>
+            <li>Mouse</li>
+           </ul>
+          </li>
+          <li>Reptiles</li>
+         </ul>
+        </li>
+        <li>Plants
+         <ul>
+          <li>Flowers
+           <ul>
+            <li>Rose</li>
+            <li>Tulip</li>
+           </ul>
+          </li>
+          <li>Trees</li>
+         </ul>
+        </li>
+       </ul>
+
+
+       <ul class="list-group">
+        <li class="list-group-item list-group-item-action">Parents</li>
+        <li class="list-group-item">
+          <ul class="list-group ps-5">
+            <li class="list-group-item list-group-item-action active">
+              <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                <span class="fw-semibold">Ngoc DUY Pham</span></a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span><span onclick="openMember('oI8sdizFyno2Yrg2zaYv')">
+                </span>
+              <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                <span class="fw-semibold">Lena</span>
+              </a></span>
+            </li>
+            <li class="list-group-item family">
+              <ul class="list-group ps-5">
+                <li class="list-group-item list-group-item-action undefined">
+                  <span onclick="openMember('jc6f3neRWU0MJIbKiG0P')"></span>
+                  <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                    <span class="fw-semibold">Joei</span>
+                  </a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span>
+                    <span onclick="openMember('FHnfysQZTqCXoRPg5UZq')"></span>
+                    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                      <span class="fw-semibold">Abc</span>
+                    </a></span>
+                  </li>
+                  <li class="list-group-item">
+                    <ul class="list-group ps-5">
+                      <li class="list-group-item list-group-item-action ">
+                        <span onclick="openMember('YqFw9uR4jBg9RCwPMPRo')"></span>
+                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                          <span class="fw-semibold">Ijka</span>
+                        </a>
+                      </li>
+                      <li class="list-group-item list-group-item-action ">
+                        <span onclick="openMember('YqFw9uR4jBg9RCwPMPRo')"></span>
+                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                          <span class="fw-semibold">Ijka</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="list-group-item list-group-item-action undefined">
+                    <span onclick="openMember('eXRQVdbNSPYQqzSq1IOr')"></span>
+                    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                      <span class="fw-semibold">Yumi</span>
+                    </a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span>
+                      <span onclick="openMember('gmnPrTKFkTIxpTqqz8WW')"></span>
+                      <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                        <span class="fw-semibold">Def</span></a><!--v-if--></span>
+                      </li>
+                      <li class="list-group-item list-group-item-action undefined">
+                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                          <span class="fw-semibold">Mina</span></a></li>
+                          <li class="list-group-item list-group-item-action undefined">
+                            <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+                              <span class="fw-semibold">Mina</span></a></li>
+                        </ul></li></ul></li></ul>
+      
 </body>
-<script>
-    const Treenode = {
-        name: 'Treenode',
-        props: {
-            msg: String,
-            node: Object
-        },
-        computed: {
-            hasChildren() {
-                return this.node.children?.length;
-            }
-        },
-        template: document.getElementById('TreeNode').innerHTML
-    };
-    const Component = {
-        props: {
-            msg: String
-        },
-        template: document.getElementById('ChildComp').innerHTML
-    }
-</script>
-<script>
-    const {createApp} = Vue;
-    const view = createApp({
-        components: {
-            Treenode,
-            Component
-        },
-        data() {
-            return {
-                greeting: 'Hello from parent'
-            }
-        },
-        computed: {
-            nodes() {
-                return [{
-                    id: 1,
-                    label: 'Foods',
-                    children: [{
-                        id: 2,
-                        label: 'Fruits',
-                        children: [{
-                            id: 3,
-                            label: 'Banana'
-                        }, {
-                            id: 4,
-                            label: 'Apple'
-                        }, {
-                            id: 5,
-                            label: 'Strawberry'
-                        }]
-                    }, {
-                        id: 6,
-                        label: 'Vegetables',
-                        children: [{
-                            id: 7,
-                            label: 'Carrot'
-                        }, {
-                            id: 8,
-                            label: 'Lettuce'
-                        }, {
-                            id: 9,
-                            label: 'Potato'
-                        }]
-                    }]
-                }, {
-                    id: 10,
-                    label: 'Drinks',
-                    children: [{
-                        id: 11,
-                        label: 'Beers',
-                        children: [{
-                            id: 12,
-                            label: 'Budweiser'
-                        }, {
-                            id: 13,
-                            label: 'Heineken'
-                        }]
-                    }, {
-                        id: 14,
-                        label: 'Wines'
-                    }, {
-                        id: 15,
-                        label: 'Whiskey'
-                    }]
-                }]
-            }
-        }
-    }).mount('#app')
-</script>
 </html>

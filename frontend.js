@@ -123,6 +123,10 @@ const Family = {
                     });
             };
             window.modal.show();
+        },
+        loadFamily(member) {
+            invoke(api.loadFamily(member.id),
+                (families) => member.families = families);
         }
     }
 };

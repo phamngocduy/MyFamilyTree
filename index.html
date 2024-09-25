@@ -10,6 +10,29 @@
     <style>
         .link:hover { text-decoration: underline; cursor: pointer; }
         .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
+        .dropdown-toggle-split { line-height: 0px; }
+        .dropdown-toggle::after { display: none; }
+        li.family-tree li:before {
+            position: absolute;
+            left: -2rem;
+            content: "";
+        }
+        li.family-tree li.list-group-item-action:before {
+            top: -1.3rem;
+            height:2.6rem;
+            width:2rem;
+            border-left:2px solid black;
+            border-bottom:2px solid black;
+        }
+        li.family-tree li:not(.list-group-item-action):not(:last-child):before {
+            top: -1.4rem;
+            height:105%;
+            border-left:2px solid black;
+        }
+        li.family-tree li.list-group-item:first-child:before {
+            top:-0.56rem;
+            height:2rem;
+        }
     </style>
 </head>
 <body>
@@ -48,12 +71,12 @@
         </div>
         <main id="vue">
             <ul class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">Parents</a>
-                <div class="list-group-item">
+                <li class="list-group-item list-group-item-action">Parents</li>
+                <li class="list-group-item family-tree">
                     <ul class="list-group ps-5">
                         <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
                     </ul>
-                </div>
+                </li>
             </ul>
             <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1">
                 <div class="modal-dialog">
@@ -168,12 +191,17 @@
 </body>
 <vue id="member" class="d-none">
     <span :onclick="`openMember('${member.id}')`">
-        <strong :class="this.if(member.id != window.query, 'link')">
+        <!--strong :class="this.if(member.id != window.query, 'link')">
             {{member.details.fullname}}
-        </strong>
+        </strong-->
     </span>
+    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+        <span class="fw-semibold">{{member.details.fullname}}</span>
+    </a>
     <span v-if="editable">
-        <button type="button" :class="`btn btn-sm dropdown-toggle dropdown-toggle-split text-${this.if(primary, 'warning', 'primary')}`" data-bs-toggle="dropdown"></button>
+        <button type="button" :class="`btn btn-sm dropdown-toggle dropdown-toggle-split text-${this.if(primary, 'warning', 'primary')}`" data-bs-toggle="dropdown">
+            <i class="bi-pencil text-primary float-end"></i>
+        </button>
         <ul class="dropdown-menu">
             <li><a href="#" @click="onUpdate" class="dropdown-item">
                 <span>Sửa</span>
@@ -190,7 +218,7 @@
 </vue>
 <vue id="family" class="d-none">
     <template v-for="family in families">
-        <a href="#" :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
+        <li :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
             <member :member="family.holder" :family="parents" :editable="editable" :droppable="!family.spouse"></member>
             <span v-if="family.spouse || editable">
                 <span v-if="!editable">&nbsp;&nbsp;</span>
@@ -200,21 +228,20 @@
             <span v-if="family.spouse">
                 <member :member="family.spouse" :family="family" :editable="editable" :droppable="!family.counter && !family.children.length"></member>
             </span>
-            <span v-if="!family.spouse && editable" style="vertical-align:sub;">
-                <i type="button" @click="addSpouse(family)" :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
-            </span>
-            <span class="badge text-bg-primary float-end" v-if="family.counter">
+            <i type="button" @click="addSpouse(family)" v-if="!family.spouse && editable"
+                :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
+            <span @click="loadFamily(family.holder)" class="badge text-bg-primary float-end" v-if="family.counter">
                 {{family.counter}}
             </span>
-        </a>
-        <div class="list-group-item" v-if="family.spouse && !family.counter && editable">
+        </li>
+        <li class="list-group-item" v-if="family.children.length || editable">
             <ul class="list-group ps-5">
                 <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
-                <a href="#" class="list-group-item list-group-item-action" v-if="editable">
+                <li class="list-group-item list-group-item-action" v-if="editable">
                     <i type="button" @click="addChild(family)" class="bi-person-add fs-4 text-primary"></i>
-                </a>
+                </li>
             </ul>
-        </div>
+        </li>
     </template>
 </vue>
 <script src="config.js"></script>
