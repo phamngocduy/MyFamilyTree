@@ -9,146 +9,51 @@
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.js"></script>
     <style>
-   ul.tree li {
-     padding: 0 7px;
-     border-left:1px solid red;
-
-   }
-   ul.tree li:last-child {
-       border-left:none;
-   }
-   ul.tree li:before {
-      position:relative;
-      top:-0.3em;
-      height:1em;
-      width:12px;
-
-      border-bottom:1px solid rgb(100,100,100);
-      content:"";
-      display:inline-block;
-      left:-7px;
-   }
-   ul.tree li:last-child:before {
-      border-left:1px solid rgb(100,100,100);   
-   }
-
-   li.list-group-item-action:before {
-    position:absolute;
-    left:-2rem;
-    top: -1.3rem;
-      height:2.6rem;
-      width:2rem;
-
-      border-left:2px solid black;
-      border-bottom:2px solid black;
-      content:"";
-   }
-   li:not(.list-group-item-action):not(:last-child):before {
-    position:absolute;
-    left:-2rem;
-    top: -1.2rem;
-      height:100%;
-
-      border-left:2px solid black;
-      content:"";
-   }
-   li.list-group-item:first-child:before {
-    position:absolute;
-    left:-2rem;
-    top:-0.6rem;
-      height:2rem;
-      width:2rem;
-
-      border-left:2px solid black;
-      border-bottom:2px solid black;
-      content:"";
-   }
+   .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
+        .dropdown-toggle-split { line-height: 0px; }
+        .dropdown-toggle::after { display: none; }
+        li.family-tree li:before {
+            position: absolute;
+            left: -2rem;
+            content: "";
+        }
+        li.family-tree li.list-group-item-action:before {
+            top: -1.3rem;
+            height:2.6rem;
+            width:2rem;
+            border-left:2px solid black;
+            border-bottom:2px solid black;
+        }
+        li.family-tree li:not(.list-group-item-action):not(:last-child):before {
+            top: -1.4rem;
+            height:105%;
+            border-left:2px solid black;
+        }
+        li.family-tree li.list-group-item:first-child:before {
+            top:-0.56rem;
+            height:2rem;
+        }
     </style>
 </head>
 <body>
-    <ul class="tree">
-        <li>Animals
-         <ul>
-          <li>Birds</li>
-          <li>Mammals
-           <ul>
-            <li>Elephant</li>
-            <li>Mouse</li>
-           </ul>
-          </li>
-          <li>Reptiles</li>
-         </ul>
-        </li>
-        <li>Plants
-         <ul>
-          <li>Flowers
-           <ul>
-            <li>Rose</li>
-            <li>Tulip</li>
-           </ul>
-          </li>
-          <li>Trees</li>
-         </ul>
-        </li>
-       </ul>
 
 
-       <ul class="list-group">
-        <li class="list-group-item list-group-item-action">Parents</li>
-        <li class="list-group-item">
-          <ul class="list-group ps-5">
-            <li class="list-group-item list-group-item-action active">
-              <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                <span class="fw-semibold">Ngoc DUY Pham</span></a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span><span onclick="openMember('oI8sdizFyno2Yrg2zaYv')">
-                </span>
-              <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                <span class="fw-semibold">Lena</span>
-              </a></span>
-            </li>
-            <li class="list-group-item family">
-              <ul class="list-group ps-5">
-                <li class="list-group-item list-group-item-action undefined">
-                  <span onclick="openMember('jc6f3neRWU0MJIbKiG0P')"></span>
-                  <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                    <span class="fw-semibold">Joei</span>
-                  </a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span>
-                    <span onclick="openMember('FHnfysQZTqCXoRPg5UZq')"></span>
-                    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                      <span class="fw-semibold">Abc</span>
-                    </a></span>
-                  </li>
-                  <li class="list-group-item">
-                    <ul class="list-group ps-5">
-                      <li class="list-group-item list-group-item-action ">
-                        <span onclick="openMember('YqFw9uR4jBg9RCwPMPRo')"></span>
-                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                          <span class="fw-semibold">Ijka</span>
-                        </a>
-                      </li>
-                      <li class="list-group-item list-group-item-action ">
-                        <span onclick="openMember('YqFw9uR4jBg9RCwPMPRo')"></span>
-                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                          <span class="fw-semibold">Ijka</span>
-                        </a>
-                      </li>
-                    </ul>
-                  </li>
-                  <li class="list-group-item list-group-item-action undefined">
-                    <span onclick="openMember('eXRQVdbNSPYQqzSq1IOr')"></span>
-                    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                      <span class="fw-semibold">Yumi</span>
-                    </a><span><span>&nbsp;&nbsp;</span><span>&amp;&nbsp;&nbsp;</span></span><span>
-                      <span onclick="openMember('gmnPrTKFkTIxpTqqz8WW')"></span>
-                      <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                        <span class="fw-semibold">Def</span></a><!--v-if--></span>
-                      </li>
-                      <li class="list-group-item list-group-item-action undefined">
-                        <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                          <span class="fw-semibold">Mina</span></a></li>
-                          <li class="list-group-item list-group-item-action undefined">
-                            <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
-                              <span class="fw-semibold">Mina</span></a></li>
-                        </ul></li></ul></li></ul>
+
+    <ul class="list-group"><li class="list-group-item list-group-item-action">Parents</li><li class="list-group-item family-tree"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action active"><span onclick="openMember('GS08Y3MEhHTdaNoTsPxL')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Ngoc DUY Pham</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-warning" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span><span><span onclick="openMember('oI8sdizFyno2Yrg2zaYv')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Lena</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-warning" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span></span><!--v-if--><!--v-if--></li><li class="list-group-item"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action undefined"><span onclick="openMember('jc6f3neRWU0MJIbKiG0P')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Joei</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-primary" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span><span><span onclick="openMember('FHnfysQZTqCXoRPg5UZq')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Abc</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-primary" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span></span><!--v-if--><span class="badge text-bg-primary float-end">1</span></li><li class="list-group-item"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item list-group-item-action undefined"><span onclick="openMember('eXRQVdbNSPYQqzSq1IOr')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Yumi</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-primary" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span><span><span onclick="openMember('gmnPrTKFkTIxpTqqz8WW')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Def</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-primary" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><li><a href="#" class="dropdown-item"><span>Xóa</span><i class="bi-x-lg text-danger float-end"></i></a></li></ul></span></span><!--v-if--><!--v-if--></li><li class="list-group-item"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item list-group-item-action undefined"><span onclick="openMember('kXlcJOP28yPmagigIryI')"><!--strong :class="this.if(member.id != window.query, 'link')">
+        {{member.details.fullname}}
+    </strong--></span><a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Mina</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split text-primary" data-bs-toggle="dropdown"><i class="bi-pencil text-primary float-end"></i></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><li><a href="#" class="dropdown-item"><span>Xóa</span><i class="bi-x-lg text-danger float-end"></i></a></li></ul></span><span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span></span><!--v-if--><i type="button" class="bi-person-add fs-4 text-primary"></i><!--v-if--></li><li class="list-group-item"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item list-group-item-action"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li></ul></li></ul>
       
 </body>
 </html>

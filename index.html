@@ -8,10 +8,9 @@
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        .link:hover { text-decoration: underline; cursor: pointer; }
+        .link-underline { color: inherit !important; }
         .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
         .dropdown-toggle-split { line-height: 0px; }
-        .dropdown-toggle::after { display: none; }
         li.family-tree li:before {
             position: absolute;
             left: -2rem;
@@ -24,7 +23,7 @@
             border-left:2px solid black;
             border-bottom:2px solid black;
         }
-        li.family-tree li:not(.list-group-item-action):not(:last-child):before {
+        li.family-tree li.family-children:not(:last-child):before {
             top: -1.4rem;
             height:105%;
             border-left:2px solid black;
@@ -65,8 +64,8 @@
         </header>
         <div class="mb-3">
             <div class="form-check form-switch float-end">
-                <input id="editable" type="checkbox" class="form-check-input link" onclick="editable(this)" >
-                <label for="editable"><i type="button" class="bi-pencil text-warning"></i></label>
+                <input id="editable" type="checkbox" class="form-check-input link" onclick="editable(this)" style="cursor:pointer;">
+                <label for="editable"><i type="button" class="bi-gear text-warning"></i></label>
             </div>
         </div>
         <main id="vue">
@@ -190,17 +189,12 @@
     </div>
 </body>
 <vue id="member" class="d-none">
-    <span :onclick="`openMember('${member.id}')`">
-        <!--strong :class="this.if(member.id != window.query, 'link')">
-            {{member.details.fullname}}
-        </strong-->
-    </span>
-    <a href="#" class="link-body-emphasis link-underline-opacity-0 link-underline-opacity-100-hover">
+    <a :href="`?q=${member.id}`" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
         <span class="fw-semibold">{{member.details.fullname}}</span>
     </a>
     <span v-if="editable">
-        <button type="button" :class="`btn btn-sm dropdown-toggle dropdown-toggle-split text-${this.if(primary, 'warning', 'primary')}`" data-bs-toggle="dropdown">
-            <i class="bi-pencil text-primary float-end"></i>
+        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+            <!--i :class="`bi-gear text- text-${this.if(primary, 'warning', 'primary')}`"></i-->
         </button>
         <ul class="dropdown-menu">
             <li><a href="#" @click="onUpdate" class="dropdown-item">
@@ -228,13 +222,14 @@
             <span v-if="family.spouse">
                 <member :member="family.spouse" :family="family" :editable="editable" :droppable="!family.counter && !family.children.length"></member>
             </span>
-            <i type="button" @click="addSpouse(family)" v-if="!family.spouse && editable"
-                :class="`bi-person-add fs-4 text-${this.if(primary, 'warning', 'primary')}`"></i>
-            <span @click="loadFamily(family.holder)" class="badge text-bg-primary float-end" v-if="family.counter">
+            <span :class="`text-${this.if(primary, 'warning', 'primary')}`" v-if="!family.spouse && editable">
+                <i type="button" @click="addSpouse(family)" class="bi-person-add fs-4"></i>
+            </span>
+            <span type="button" @click="loadFamily(family.holder)" class="badge text-bg-primary float-end" v-if="family.counter">
                 {{family.counter}}
             </span>
         </li>
-        <li class="list-group-item" v-if="family.children.length || editable">
+        <li class="list-group-item family-children" v-if="!family.counter && (family.children.length || editable)">
             <ul class="list-group ps-5">
                 <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
                 <li class="list-group-item list-group-item-action" v-if="editable">
