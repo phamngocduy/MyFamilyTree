@@ -37,10 +37,11 @@ const allRelations = (mid) => getDocuments(RELATIONS, or(
     where('parents', ARRAY_CONTAINS, mid), where('children', ARRAY_CONTAINS, mid)));
 const getParents = (mid) => getDocuments(RELATIONS, where('children', ARRAY_CONTAINS, mid));
 
-async function initRelation(relation_id, member_id) {
-    const relation = relation_id ? await getRelation(relation_id) : {
-        parents: [member_id], children: []
-    }
+async function initRelation(relation_id, member_id, is_child=false) {
+    const relation = relation_id ? await getRelation(relation_id) : (
+        is_child ? { parents: [], children: [member_id] }
+                 : { parents: [member_id], children: [] }
+    );
     relation_id = relation_id ?? (await newRelation()).id;
     return [relation_id, relation, (await newMember()).id];
 }
@@ -114,6 +115,24 @@ export default {
         await setMember(id, member),
 
     loadFamily: loadFamily,
+    loadParents: async (member_id) => {
+        const parents = [];
+        var family_id = undefined;
+        const relations = await getParents(member_id);
+        if (relations.size > 0) {
+            family_id = relations.docs[0].id;
+            const relation = relations.docs[0].data();
+            for (const parent_id of relation.parents) {
+                const parent = await getMember(parent_id);
+                if (parent.exists())
+                    parents.push({
+                        id: parent_id,
+                        details: parent.data()
+                    });
+            }
+        }
+        return [family_id, parents];
+    },
 
     saveChild: async (family_id, parent_id, child) => {
         const [relation_id, relation, child_id] =
@@ -137,6 +156,18 @@ export default {
         await batch.set(refMember(spouse_id), spouse);
         await batch.commit();
         return [relation_id, spouse_id];
+    },
+
+    saveParent: async (family_id, child_id, parent) => {
+        const [relation_id, relation, parent_id] =
+            await initRelation(family_id, child_id, true);
+        relation.parents.push(parent_id);
+
+        const batch = await newBatch();
+        await batch.set(refRelation(relation_id), relation);
+        await batch.set(refMember(parent_id), parent);
+        await batch.commit();
+        return [relation_id, parent_id];
     },
 
     dropChild: async (family_id, child_id) => {

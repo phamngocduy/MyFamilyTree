@@ -7,32 +7,7 @@
     <link href="packages/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .link-underline { color: inherit !important; }
-        .bi-person-add { margin-top: -12px; margin-bottom: -12px; }
-        .dropdown-toggle-split { line-height: 0px; }
-        li.family-tree li:before {
-            position: absolute;
-            left: -2rem;
-            content: "";
-        }
-        li.family-tree li.list-group-item-action:before {
-            top: -1.3rem;
-            height:2.6rem;
-            width:2rem;
-            border-left:2px solid black;
-            border-bottom:2px solid black;
-        }
-        li.family-tree li.family-children:not(:last-child):before {
-            top: -1.4rem;
-            height:105%;
-            border-left:2px solid black;
-        }
-        li.family-tree li.list-group-item:first-child:before {
-            top:-0.56rem;
-            height:2rem;
-        }
-    </style>
+    <link href="index.css" rel="stylesheet">
 </head>
 <body>
     <div class="d-flex flex-column col-lg-8 mx-auto p-3 py-md-5" style="min-height:100vh;">
@@ -70,10 +45,19 @@
         </div>
         <main id="vue">
             <ul class="list-group">
-                <li class="list-group-item list-group-item-action">Parents</li>
+                <li class="list-group-item list-group-item-action">
+                    <template v-for="parent in family.parents">
+                        <member :member="parent" :family="family" :editable="editable" :dropfunc="this.if(family.children.length == 1, dropParent)"></member>
+                        <marry :editable="editable" v-if="editable"></marry>
+                    </template>
+                    <i type="button" @click="addParent(family)" class="bi-person-add fs-4 text-primary" v-if="family.parents?.length<2"></i>
+                </li>
                 <li class="list-group-item family-tree">
                     <ul class="list-group ps-5">
                         <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
+                        <li class="list-group-item list-group-item-action" v-if="family.parents?.length">
+                            <i type="button" @click="addParent(family)" class="bi-person-add fs-4 text-primary"></i>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -188,20 +172,23 @@
         </footer>
     </div>
 </body>
+<vue id="marry" class="d-none">
+    <span v-if="!editable">&nbsp;&nbsp;</span>
+    <span>&amp;&nbsp;&nbsp;</span>
+    <span v-if="editable">&nbsp;&nbsp;</span>
+</vue>
 <vue id="member" class="d-none">
     <a :href="`?q=${member.id}`" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover">
         <span class="fw-semibold">{{member.details.fullname}}</span>
     </a>
     <span v-if="editable">
-        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-            <!--i :class="`bi-gear text- text-${this.if(primary, 'warning', 'primary')}`"></i-->
-        </button>
+        <button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
         <ul class="dropdown-menu">
             <li><a href="#" @click="onUpdate" class="dropdown-item">
                 <span>Sửa</span>
                 <i class="bi-pencil text-primary float-end"></i>
             </a></li>
-            <li v-if="droppable">
+            <li v-if="dropfunc">
                 <a href="#" @click="onDelete" class="dropdown-item">
                     <span>Xóa</span>
                     <i class="bi-x-lg text-danger float-end"></i>
@@ -213,14 +200,10 @@
 <vue id="family" class="d-none">
     <template v-for="family in families">
         <li :class="`list-group-item list-group-item-action ${this.if(primary, 'active')}`">
-            <member :member="family.holder" :family="parents" :editable="editable" :droppable="!family.spouse"></member>
-            <span v-if="family.spouse || editable">
-                <span v-if="!editable">&nbsp;&nbsp;</span>
-                <span>&amp;&nbsp;&nbsp;</span>
-                <span v-if="editable">&nbsp;&nbsp;</span>
-            </span>
+            <member :member="family.holder" :family="parents" :editable="editable" :dropfunc="this.if(!family.spouse, dropChild)"></member>
+            <marry :editable="editable" v-if="family.spouse || editable"></marry>
             <span v-if="family.spouse">
-                <member :member="family.spouse" :family="family" :editable="editable" :droppable="!family.counter && !family.children.length"></member>
+                <member :member="family.spouse" :family="family" :editable="editable" :dropfunc="this.if(!family.counter && !family.children.length, dropSpouse)"></member>
             </span>
             <span :class="`text-${this.if(primary, 'warning', 'primary')}`" v-if="!family.spouse && editable">
                 <i type="button" @click="addSpouse(family)" class="bi-person-add fs-4"></i>
@@ -297,6 +280,10 @@
                 invoke(api.loadFamily(member.id), (families) => {
                     member.families = families;
                     app.family.children = [member];
+                    invoke(api.loadParents(member.id), ([family_id, parents]) => {
+                        app.family.id = family_id;
+                        app.family.parents = parents;
+                    })
                 });
             }
         });

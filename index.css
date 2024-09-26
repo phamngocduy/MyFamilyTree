@@ -1,0 +1,38 @@
+.link-underline {
+    color: inherit !important;
+}
+
+.bi-person-add {
+    margin-top: -12px;
+    margin-bottom: -12px;
+}
+
+.dropdown-toggle-split {
+    line-height: 0px;
+}
+
+li.active {
+    z-index: auto !important;
+}
+
+li.family-tree li:before {
+    position: absolute;
+    left: -2rem;
+    content: "";
+}
+li.family-tree li.list-group-item-action:before {
+    top: -1.3rem;
+    height:2.6rem;
+    width:2rem;
+    border-left:2px solid black;
+    border-bottom:2px solid black;
+}
+li.family-tree li.family-children:not(:last-child):before {
+    top: -1.4rem;
+    height:105%;
+    border-left:2px solid black;
+}
+li.family-tree li.list-group-item:first-child:before {
+    top:-0.56rem;
+    height:2rem;
+}

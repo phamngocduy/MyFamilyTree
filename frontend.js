@@ -11,13 +11,20 @@ function VueJS(id) {
     }
 }
 
+const Marry = {
+    ...VueJS('marry'),
+    props: {
+        editable: Boolean
+    }
+};
+
 const Member = {
     ...VueJS('member'),
     props: {
         member: Object,
         family: Object,
         editable: Boolean,
-        droppable: Boolean
+        dropfunc: Function
     },
     computed: {
         primary() {
@@ -41,30 +48,8 @@ const Member = {
         },
         onDelete() {
             if (confirm('Do you want to delete this member?')) {
-                const member = this.member;
-                const family = this.family;
-                if (family.spouse === member)
-                    this.dropSpouse(family, member);
-                else this.dropChild(family, member);
+                this.dropfunc(this.family, this.member);
             }
-        },
-        dropChild(family, child) {
-            invoke(api.dropChild(family.id, child.id), (success) => {
-                if (success == true) {
-                    family.children.remove(child);
-                    if (family.spouse == undefined && family.children.length == 0)
-                        family.id = undefined;
-                }
-            });
-        },
-        dropSpouse(family, spouse) {
-            invoke(api.dropSpouse(family.id, spouse.id), (success) => {
-                if (success == true) {
-                    family.spouse = undefined;
-                    if (family.children.length == 0)
-                        family.id = undefined;
-                }
-            });
         }
     }
 };
@@ -72,7 +57,7 @@ const Member = {
 const Family = {
     ...VueJS('family'),
     components: {
-        Member
+        Member, Marry
     },
     props: {
         holder: Object,
@@ -104,7 +89,7 @@ const Family = {
                             id: child_id,
                             families: [],
                             details: window.app.member
-                        })
+                        });
                     });
             };
             window.modal.show();
@@ -119,7 +104,7 @@ const Family = {
                         family.spouse = {
                             id: spouse_id,
                             details: window.app.member
-                        }
+                        };
                     });
             };
             window.modal.show();
@@ -127,13 +112,31 @@ const Family = {
         loadFamily(member) {
             invoke(api.loadFamily(member.id),
                 (families) => member.families = families);
+        },
+        dropChild(family, child) {
+            invoke(api.dropChild(family.id, child.id), (success) => {
+                if (success == true) {
+                    family.children.remove(child);
+                    if (family.spouse == undefined && family.children.length == 0)
+                        family.id = undefined;
+                }
+            });
+        },
+        dropSpouse(family, spouse) {
+            invoke(api.dropSpouse(family.id, spouse.id), (success) => {
+                if (success == true) {
+                    family.spouse = undefined;
+                    if (family.children.length == 0)
+                        family.id = undefined;
+                }
+            });
         }
     }
 };
 
 export default createApp({
     components: {
-        Family, Member
+        Family, Member, Marry
     },
     data() {
         return {
@@ -172,6 +175,31 @@ export default createApp({
         clsEvent() {
             this.event_date = this.event_details = undefined;
         },
-        toCanChi: (ddmmyyyy) => window.toCanChi(ddmmyyyy)
+        toCanChi: (ddmmyyyy) => window.toCanChi(ddmmyyyy),
+        addParent(family) {
+            window.app.member = {};
+            const child_id = this.family.children[0].id;
+            window.modal.onSubmit = function() {
+                invoke(window.api.saveParent(family.id, child_id, window.app.member),
+                    ([family_id, parent_id]) => {
+                        family.id = family_id;
+                        family.parents.push({
+                            id: parent_id,
+                            details: window.app.member
+                        });
+                    });
+            };
+            window.modal.show();
+        },
+        dropParent(family, parent) {
+            invoke(api.dropSpouse(family.id, parent.id), (success) => {
+                if (success == true) {
+                    family.parents.remove(parent);
+                    if (family.parents.length == 0)
+                        family.id = undefined;
+                }
+            });
+        },
+        if: window.if
     }
 });
