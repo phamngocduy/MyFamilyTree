@@ -7,6 +7,7 @@
     <link href="packages/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="packages/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link href="index.css" rel="stylesheet">
 </head>
 <body>
@@ -46,17 +47,17 @@
         <main id="vue">
             <ul class="list-group">
                 <li class="list-group-item list-group-item-action">
-                    <template v-for="parent in family.parents">
+                    <template v-for="(parent, index) in family.parents">
                         <member :member="parent" :family="family" :editable="editable" :dropfunc="this.if(family.children.length == 1, dropParent)"></member>
-                        <marry :editable="editable" v-if="editable"></marry>
+                        <marry :editable="editable" v-if="family.parents.length && !index"></marry>
                     </template>
                     <i type="button" @click="addParent(family)" class="bi-person-add fs-4 text-primary" v-if="family.parents?.length<2"></i>
                 </li>
                 <li class="list-group-item family-tree">
                     <ul class="list-group ps-5">
                         <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
-                        <li class="list-group-item list-group-item-action" v-if="family.parents?.length">
-                            <i type="button" @click="addParent(family)" class="bi-person-add fs-4 text-primary"></i>
+                        <li class="list-group-item list-group-item-action" v-if="family.parents?.length && editable">
+                            <i type="button" @click="addChild(family, family.parents[0])" class="bi-person-add fs-4 text-primary"></i>
                         </li>
                     </ul>
                 </li>
@@ -212,7 +213,7 @@
                 {{family.counter}}
             </span>
         </li>
-        <li class="list-group-item family-children" v-if="!family.counter && (family.children.length || editable)">
+        <li class="list-group-item family-children" v-if="!family.counter && family.spouse && (family.children.length || editable)">
             <ul class="list-group ps-5">
                 <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
                 <li class="list-group-item list-group-item-action" v-if="editable">
@@ -275,14 +276,19 @@
         invoke(api.initMember(id, user.uid), (member) => {
             if (member != undefined) {
                 if (member.id != id)
-                    location.replace(`?q=${member.id}`);
+                    return location.replace(`?q=${member.id}`);
                 window.query = member.id;
                 invoke(api.loadFamily(member.id), (families) => {
                     member.families = families;
                     app.family.children = [member];
-                    invoke(api.loadParents(member.id), ([family_id, parents]) => {
+                    invoke(api.loadParents(member.id), ([family_id, parents, children]) => {
                         app.family.id = family_id;
                         app.family.parents = parents;
+                        for (const child_id of children) {
+                            if (child_id != member.id)
+                                invoke(api.loadMember(child_id),
+                                    (child) => app.family.children.push(child));
+                        }
                     })
                 });
             }

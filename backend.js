@@ -115,8 +115,18 @@ export default {
         await setMember(id, member),
 
     loadFamily: loadFamily,
+    loadMember: async (member_id) => {
+        const member = await getMember(member_id);
+        if (member.exists())
+            return {
+                id: member.id,
+                details: member.data(),
+                families: await loadFamily(member_id, false)
+            };
+    },
     loadParents: async (member_id) => {
         const parents = [];
+        const children = [];
         var family_id = undefined;
         const relations = await getParents(member_id);
         if (relations.size > 0) {
@@ -130,8 +140,9 @@ export default {
                         details: parent.data()
                     });
             }
+            children.push(...relation.children);
         }
-        return [family_id, parents];
+        return [family_id, parents, children];
     },
 
     saveChild: async (family_id, parent_id, child) => {

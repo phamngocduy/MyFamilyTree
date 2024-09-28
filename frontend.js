@@ -78,11 +78,11 @@ const Family = {
         }
     },
     methods: {
-        addChild(family) {
+        addChild(family, holder) {
             window.app.member = {};
-            const parent_id = this.holder.id;
+            holder = holder ?? this.holder;
             window.modal.onSubmit = function() {
-                invoke(window.api.saveChild(family.id, parent_id, window.app.member),
+                invoke(window.api.saveChild(family.id, holder.id, window.app.member),
                     ([family_id, child_id]) => {
                         family.id = family_id;
                         family.children.push({
@@ -94,11 +94,11 @@ const Family = {
             };
             window.modal.show();
         },
-        addSpouse(family) {
+        addSpouse(family, holder) {
             window.app.member = {};
-            const holder_id = this.holder.id;
+            holder = holder ?? this.holder;
             window.modal.onSubmit = function() {
-                invoke(window.api.saveSpouse(family.id, holder_id, window.app.member),
+                invoke(window.api.saveSpouse(family.id, holder.id, window.app.member),
                     ([family_id, spouse_id]) => {
                         family.id = family_id;
                         family.spouse = {
@@ -190,6 +190,9 @@ export default createApp({
                     });
             };
             window.modal.show();
+        },
+        addChild(family, holder) {
+            Family.methods.addChild(family, holder);
         },
         dropParent(family, parent) {
             invoke(api.dropSpouse(family.id, parent.id), (success) => {
