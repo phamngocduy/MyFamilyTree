@@ -1,6 +1,6 @@
 node_modules
 package-lock.json
-deploy.js
 backend/python312
 backend/lambda
 backend/firebase.json
+deploy.js
