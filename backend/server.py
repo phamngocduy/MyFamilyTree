@@ -12,5 +12,8 @@ def test_firestore():
 
 @app.route('/', methods=['POST'])
 def flask_handler():
-    json = handleRequest(request.json)
+    return lambda_handler(request.json, None)
+
+def lambda_handler(event, context):
+    json = handleRequest(event)
     return jsonify(json), 200

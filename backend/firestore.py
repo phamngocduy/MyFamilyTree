@@ -4,10 +4,10 @@ from firebase_admin import auth, firestore
 from firebase_admin.credentials import Certificate
 from firebase_admin.firestore import FieldFilter, Or
 
-SECRET = 'firebase.json'
 if not firebase_admin._apps:
     firebase_admin.initialize_app(
-        Certificate(os.getenv(SECRET) or SECRET))
+        Certificate(os.getenv('firebase_json')
+                    or 'firebase.json'))
 db = firestore.client()
 
 def testFirestore():
