@@ -1,3 +1,4 @@
+const ARRAY_CONTAINS = 'array-contains';
 const {initializeApp} = await importFirebase('app');
 const {getAuth, onAuthStateChanged, signOut} = await importFirebase('auth');
 const {getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, writeBatch, or} = await importFirebase('firestore');
@@ -22,6 +23,7 @@ const addDocument = (group, document) => addDoc(select(group), document);
 const setDocument = (group, id, document) => setDoc(ref(group, id), document);
 const getDocuments = (group, ...clauses) => getDocs(query(select(group), ...clauses));
 
+const MEMBERS = 'members';
 const newMember = () => newDocument(MEMBERS);
 const refMember = (id) => ref(MEMBERS, id);
 const getMember = (id) => getDocument(MEMBERS, id);
@@ -29,6 +31,7 @@ const addMember = (member) => addDocument(MEMBERS, member);
 const setMember = (id, member) => setDocument(MEMBERS, id, member);
 const getMembers = (uid) => getDocuments(MEMBERS, where('userid', ARRAY_CONTAINS, uid));
 
+const RELATIONS = 'relations';
 const newRelation = () => newDocument(RELATIONS);
 const refRelation = (id) => ref(RELATIONS, id);
 const getRelation = async (id) => (await getDocument(RELATIONS, id)).data();

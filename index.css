@@ -27,7 +27,7 @@ li.family-tree li.list-group-item-action:before {
     border-left:2px solid black;
     border-bottom:2px solid black;
 }
-li.family-tree li.family-children:not(:last-child):before {
+li.family-tree li.family-children:not(:last-child):has(+.list-group-item-action):before {
     top: -1.4rem;
     height:105%;
     border-left:2px solid black;

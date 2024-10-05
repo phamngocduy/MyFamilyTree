@@ -56,7 +56,7 @@
                 <li class="list-group-item family-tree">
                     <ul class="list-group ps-5">
                         <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
-                        <li class="list-group-item list-group-item-action" v-if="family.parents?.length && editable">
+                        <li class="list-group-item" v-if="family.parents?.length && editable">
                             <i type="button" @click="addChild(family, family.parents[0])" class="bi-person-add fs-4 text-primary"></i>
                         </li>
                     </ul>
@@ -216,7 +216,7 @@
         <li class="list-group-item family-children" v-if="!family.counter && family.spouse && (family.children.length || editable)">
             <ul class="list-group ps-5">
                 <family v-for="child in family.children" :holder="child" :parents="family" :editable="editable"></family>
-                <li class="list-group-item list-group-item-action" v-if="editable">
+                <li class="list-group-item" v-if="editable">
                     <i type="button" @click="addChild(family)" class="bi-person-add fs-4 text-primary"></i>
                 </li>
             </ul>
