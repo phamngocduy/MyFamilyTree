@@ -24,13 +24,13 @@ li.family-tree li.list-group-item-action:before {
     top: -1.3rem;
     height:2.6rem;
     width:2rem;
-    border-left:2px solid black;
-    border-bottom:2px solid black;
+    border-left:1px solid black;
+    border-bottom:1px solid black;
 }
 li.family-tree li.family-children:not(:last-child):has(+.list-group-item-action):before {
     top: -1.4rem;
     height:105%;
-    border-left:2px solid black;
+    border-left:1px solid black;
 }
 li.family-tree li.list-group-item:first-child:before {
     top:-0.56rem;

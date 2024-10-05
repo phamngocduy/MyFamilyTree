@@ -9,56 +9,31 @@
     <script src="packages/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="packages/vue/dist/vue.global.js"></script>
     <style>
-.bi-person-add {
-    margin-top: -12px;
-    margin-bottom: -12px;
-}
-.dropdown-toggle-split {
-    line-height: 0px;
-}
-li.family-tree li:before {
-    position: absolute;
-    left: -2rem;
-    content: "";
-}
-li.family-tree li.list-group-item-action:before {
-    top: -1.3rem;
-    height:2.6rem;
-    width:2rem;
-    border-left:2px solid black;
-    border-bottom:2px solid black;
-}
-li.family-tree li.family-children:not(:last-child):has(+.list-group-item-action):before {
-    top: -1.4rem;
-    height:105%;
-    border-left:2px solid black;
-}
-li.family-tree li.list-group-item:first-child:before {
-    top:-0.56rem;
-    height:2rem;
-}
-li.family-tree li.family-children + li:not(.list-group-item-action):before {
-    border-left:2px solid red;
-}
     </style>
 </head>
 <body>
 
+<button onclick="invoke()">hello</button>
 
 
-    <ul class="list-group"><li class="list-group-item list-group-item-action"><a href="?q=V7ASxkiHeNEuGR2aLkxG" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Baa</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><a href="?q=4lDSWfRh9CsyrQ0nMfRK" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Mee</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><!--v-if--></li><li class="list-group-item family-tree"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action active"><a href="?q=GS08Y3MEhHTdaNoTsPxL" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Ngoc DUY Pham</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><span><a href="?q=oI8sdizFyno2Yrg2zaYv" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Lena</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span></span><!--v-if--><!--v-if--></li><li class="list-group-item family-children"><ul class="list-group ps-5"><li class="list-group-item list-group-item-action undefined"><a href="?q=jc6f3neRWU0MJIbKiG0P" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Joei</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><span><a href="?q=FHnfysQZTqCXoRPg5UZq" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Abc</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span></span><!--v-if--><span type="button" class="badge text-bg-primary float-end">1</span></li><!--v-if--><li class="list-group-item list-group-item-action undefined"><a href="?q=eXRQVdbNSPYQqzSq1IOr" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Yumi</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><span><a href="?q=znHljUBZJDk8abJlvLF4" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Def</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><li><a href="#" class="dropdown-item"><span>Xóa</span><i class="bi-x-lg text-danger float-end"></i></a></li></ul></span></span><!--v-if--><!--v-if--></li><li class="list-group-item family-children"><ul class="list-group ps-5"><li class="list-group-item"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item list-group-item-action undefined"><a href="?q=Ib9klcLExD4tnQA0cFfr" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Mina</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><li><a href="#" class="dropdown-item"><span>Xóa</span><i class="bi-x-lg text-danger float-end"></i></a></li></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><!--v-if--><span class="text-primary"><i type="button" class="bi-person-add fs-4"></i></span><!--v-if--></li><!--v-if--><li class="list-group-item"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item list-group-item-action undefined"><a href="?q=zu2UMPCNKip3DNlM6M05" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">Keta</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><!--v-if--></ul></span><!--v-if--><span>&amp;&nbsp;&nbsp;</span><span>&nbsp;&nbsp;</span><span><a href="?q=2oNNa3SECSoOJThAbOpr" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover"><span class="fw-semibold">cc</span></a><span><button type="button" class="btn btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button><ul class="dropdown-menu"><li><a href="#" class="dropdown-item"><span>Sửa</span><i class="bi-pencil text-primary float-end"></i></a></li><li><a href="#" class="dropdown-item"><span>Xóa</span><i class="bi-x-lg text-danger float-end"></i></a></li></ul></span></span><!--v-if--><!--v-if--></li><li class="list-group-item family-children"><ul class="list-group ps-5"><li class="list-group-item"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li><li class="list-group-item"><i type="button" class="bi-person-add fs-4 text-primary"></i></li></ul></li></ul>
-      
 <script>
-    const ABC = {
-        methods: {
-            abc() {
-                console.log(this);
-                console.log(1234);
-            }
+    async function request(action, content) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/', {
+                method: 'POST',
+                body: JSON.stringify({action, content}),
+                headers: {'Content-type': 'application/json'}
+            });
+            if (response.ok) return await response.json();
+            else throw new Error(response.status);
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
         }
     }
-    ABC.methods.abc()
-    
+    function invoke() {
+        request('loadMember', {member_id: 'GS08Y3MEhHTdaNoTsPxL'})
+    }
 </script>
 
 
