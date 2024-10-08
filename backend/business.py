@@ -96,7 +96,11 @@ def loadParents(member_id):
                     DETAILS: parent.to_dict()
                 })
         children.extend(relation[CHILDREN])
-    return family_id, parents, children
+    return {
+        ID: family_id,
+        PARENTS: parents,
+        CHILDREN: children
+    }
 
 def initRelation(relation_id, member_id, as_holder=True):
     relation = Relations.get(relation_id) if relation_id else {

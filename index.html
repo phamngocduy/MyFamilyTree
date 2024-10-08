@@ -281,10 +281,10 @@
                 invoke(api.loadFamily(member.id), (families) => {
                     member.families = families;
                     app.family.children = [member];
-                    invoke(api.loadParents(member.id), ([family_id, parents, children]) => {
-                        app.family.id = family_id;
-                        app.family.parents = parents;
-                        for (const child_id of children) {
+                    invoke(api.loadParents(member.id), (family) => {
+                        app.family.id = family.id;
+                        app.family.parents = family.parents;
+                        for (const child_id of family.children) {
                             if (child_id != member.id)
                                 invoke(api.loadMember(child_id),
                                     (child) => app.family.children.push(child));

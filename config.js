@@ -15,3 +15,5 @@ const FIREBASE = 'https://www.gstatic.com/firebasejs/10.12.5';
 async function importFirebase(lib) {
     return await import(`${FIREBASE}/firebase-${lib}.js`);
 }
+
+const backendURL = 'http://127.0.0.1:5000/';
