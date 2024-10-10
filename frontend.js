@@ -114,7 +114,7 @@ const Family = {
                 (families) => member.families = families);
         },
         dropChild(family, child) {
-            invoke(api.dropChild(family.id, child.id), (success) => {
+            invoke(api.dropChild(family.id, child.id), ([success]) => {
                 if (success == true) {
                     family.children.remove(child);
                     if (family.spouse == undefined && family.children.length == 0)
@@ -123,7 +123,7 @@ const Family = {
             });
         },
         dropSpouse(family, spouse) {
-            invoke(api.dropSpouse(family.id, spouse.id), (success) => {
+            invoke(api.dropSpouse(family.id, spouse.id), ([success]) => {
                 if (success == true) {
                     family.spouse = undefined;
                     if (family.children.length == 0)
@@ -195,7 +195,7 @@ export default createApp({
             Family.methods.addChild(family, holder);
         },
         dropParent(family, parent) {
-            invoke(api.dropSpouse(family.id, parent.id), (success) => {
+            invoke(api.dropSpouse(family.id, parent.id), ([success]) => {
                 if (success == true) {
                     family.parents.remove(parent);
                     if (family.parents.length == 0)

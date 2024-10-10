@@ -103,14 +103,14 @@ def loadParents(member_id):
     }
 
 def initRelation(relation_id, member_id, as_holder=True):
-    relation = Relations.get(relation_id) if relation_id else {
+    relation = Relations.load(relation_id) if relation_id else {
         PARENTS: [member_id],
         CHILDREN: []
     } if as_holder else {
         PARENTS: [],
         CHILDREN: [member_id]
     }
-    return relation_id or Relations.add().id, relation, Members().add().id
+    return relation_id or Relations.add().id, relation, Members.add().id
 
 def saveChild(family_id, parent_id, child):
     relation_id, relation, child_id = initRelation(family_id, parent_id)
@@ -120,7 +120,7 @@ def saveChild(family_id, parent_id, child):
     batch.set(Relations[relation_id], relation)
     batch.set(Members[child_id], child)
     batch.commit()
-    return relation_id, child_id
+    return [relation_id, child_id]
 
 def saveSpouse(family_id, holder_id, spouse):
     relation_id, relation, spouse_id = initRelation(family_id, holder_id)
@@ -130,7 +130,7 @@ def saveSpouse(family_id, holder_id, spouse):
     batch.set(Relations[relation_id], relation)
     batch.set(Members[spouse_id], spouse)
     batch.commit()
-    return relation_id, spouse_id
+    return [relation_id, spouse_id]
 
 def saveParent(family_id, child_id, parent):
     relation_id, relation, parent_id = initRelation(family_id, child_id, False)
@@ -140,7 +140,7 @@ def saveParent(family_id, child_id, parent):
     batch.set(Relations[relation_id], relation)
     batch.set(Members[parent_id], parent)
     batch.commit()
-    return relation_id, parent_id
+    return [relation_id, parent_id]
 
 def editRelation(batch, relation_id, relation):
     if len(relation[PARENTS]) == 1 and len(relation[CHILDREN]) == 0:
@@ -149,26 +149,26 @@ def editRelation(batch, relation_id, relation):
 
 def dropChild(family_id, child_id):
     relations = Relations.byRelations(child_id)
-    if len(relations.get()) > 1: return False
+    if len(relations.get()) > 1: return [False]
 
-    relation = Relations.get(family_id)
+    relation = Relations.load(family_id)
     relation[CHILDREN].remove(child_id)
 
     batch = db.batch()
     editRelation(batch, family_id, relation)
     batch.delete(Members[child_id])
     batch.commit()
-    return True
+    return [True]
 
 def dropHolder(family_id, holder_id):
-    relation = Relations.get(family_id)
+    relation = Relations.load(family_id)
     relation[PARENTS].remove(holder_id)
     if len(relation[PARENTS]) == 0 and len(relation[CHILDREN]) > 0:
-        return False
+        return [False]
 
     batch = db.batch()
     editRelation(batch, family_id, relation)
     if len(Relations.byRelations(holder_id).get()) == 1:
         batch.delete(Members[holder_id])
     batch.commit()
-    return True
+    return [True]

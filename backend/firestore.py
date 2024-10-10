@@ -43,6 +43,8 @@ class Collection:
         return self().document(key)
     def get(self, key):
         return self[key].get()
+    def load(self, key):
+        return self.get(key).to_dict()
     def add(self, data=None):
         return self().add(data)[1] if data else self().document()
     def set(self, key, data):
