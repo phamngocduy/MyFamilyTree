@@ -13,14 +13,15 @@ Array.prototype.remove = function(element) {
 window.if = (condition, return1, return2) =>
     condition ? return1 : return2;
 
+var counter = 0;
 function invoke(promise, callback) {
-    loadUI(true);
+    loadUI(true); counter++;
     promise.then((value) => {
         if (callback) callback(value);
     }).catch((error) => {
         console.error(error);
         alert(error.message);
-    }).finally(() => loadUI(false));
+    }).finally(() => loadUI(--counter ? true : false));
 }
 
 function parseDate(ddmmyyyy) {
