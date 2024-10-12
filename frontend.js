@@ -1,4 +1,4 @@
-const {createApp} = await import('./packages/vue/dist/vue.esm-browser.js');
+const {createApp} = await importVueJS();
 
 function VueJS(id) {
     return {

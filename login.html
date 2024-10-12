@@ -1,6 +1,5 @@
 <html>
 <head>
-    <link href="packages/firebaseui/dist/firebaseui.css" rel="stylesheet" />
     <script src="config.js"></script>
 </head>
 <body>
@@ -8,43 +7,56 @@
         <div id="firebaseui-auth"></div>
     </div>
 </body>
-<script src="packages/firebase/firebase-app-compat.js"></script>
-<script src="packages/firebase/firebase-auth-compat.js"></script>
-<script src="packages/firebaseui/dist/firebaseui.js"></script>
 <script>
-    firebase.initializeApp(firebaseConfig);
-    var ui = new firebaseui.auth.AuthUI(firebase.auth());
-    
-    const uiConfig = { // FirebaseUI config
-        signInFlow: 'popup',
-        signInOptions: [
-            {
-                provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                clientId: firebaseConfig.googleId
-            },
-            {
-                provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-                signInMethod: 'password',
-                disableSignUp: {
-                    status: false
-                }
-            },
-            {
-                provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-                recaptchaParameters: {
-                    size: 'invisible'
-                }
-            },
-            firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID,
-            'yahoo.com', 'facebook.com'
-        ]
-    };
+    const link = document.createElement('link');
+    link.href = firebaseUI('.css');
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
 
+    var script = document.createElement('script');
+    script.src = firebaseCompat('app');
+    document.body.appendChild(script);
+
+    script = document.createElement('script');
+    script.src = firebaseCompat('auth');
+    document.body.appendChild(script);
+
+    script = document.createElement('script');
+    script.src = firebaseUI('__vi.js');
+    document.body.appendChild(script);
+</script>
+
+<script>
     window.addEventListener('load', function() {
+        firebase.initializeApp(firebaseConfig);
+        var ui = new firebaseui.auth.AuthUI(firebase.auth());
+    
         firebase.auth().onAuthStateChanged(function (user) {
-            if (user == null)
-                return ui.start('#firebaseui-auth', uiConfig);
-            else window.location.replace('.');
+            if (user != null) window.location.replace('.');
+            ui.start('#firebaseui-auth', {
+                signInFlow: 'popup',
+                signInOptions: [
+                    {
+                        provider: firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                        clientId: firebaseConfig.googleId
+                    },
+                    {
+                        provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                        signInMethod: 'password',
+                        disableSignUp: {
+                            status: false
+                        }
+                    },
+                    {
+                        provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+                        recaptchaParameters: {
+                            size: 'invisible'
+                        }
+                    },
+                    firebaseui.auth.AnonymousAuthProvider.PROVIDER_ID,
+                    'yahoo.com', 'facebook.com'
+                ]
+            });
         });
     });
 </script>
