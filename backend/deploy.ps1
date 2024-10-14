@@ -1,2 +1,2 @@
 python312\scripts\activate
-flask --app server run --debug
+functions-framework --source server.py --target flask_handler --debug

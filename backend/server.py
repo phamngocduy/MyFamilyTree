@@ -1,20 +1,23 @@
-from flask import Flask, request
-from flask_cors import CORS
+import functions_framework, json
 from firestore import testFirestore
 from business import handleRequest
 
-app = Flask(__name__)
-CORS(app)
+CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+}
 
-@app.route('/')
-def test_firestore():
-    return testFirestore()
+@functions_framework.http
+def flask_handler(request):
+    print(request)
+    if request.method == 'OPTIONS':
+        return ('', 204, CORS)
+    if request.method == 'GET':
+        return testFirestore()
+    json = request.get_json(silent=True)
+    return (handleRequest(json), 200, CORS)
 
-@app.route('/', methods=['POST'])
-def flask_handler():
-    return handleRequest(request.json)
-
-import json
 def lambda_handler(event, context):
     if 'body' in event:
         event = json.loads(event['body'])
@@ -27,10 +30,6 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-        },
+        'headers': CORS,
         'body': response
     }

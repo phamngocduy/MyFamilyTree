@@ -1,12 +1,11 @@
-__pycache__
 node_modules
 package-lock.json
 
 backend/python312
+backend/__pycache__
 backend/firebase.json
-backend/lambda
-!backend/lambda/cygrpc.cpython-312-x86_64-linux-gnu.so
+backend/lambda/package
 
-frontend
+frontend/public
 frontend/config.js
-!frontend/firebase.json
+frontend/.firebaserc
