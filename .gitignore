@@ -5,6 +5,7 @@ backend/python312
 backend/__pycache__
 backend/firebase.json
 backend/lambda/package
+backend/gcloud/package
 
 frontend/public
 frontend/config.js
