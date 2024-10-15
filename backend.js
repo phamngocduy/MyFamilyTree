@@ -26,6 +26,7 @@ async function request(action, content) {
     }
 }
 
+const loadBundle = 'loadBundle';
 const initMember = 'initMember';
 const saveMember = 'saveMember';
 const loadFamily = 'loadFamily';
@@ -38,6 +39,7 @@ const dropChild = 'dropChild';
 const dropHolder = 'dropHolder';
 
 export default {
+    loadBundle: (query, user) => request(loadBundle, {query, user}),
     initMember: (query, user) => request(initMember, {query, user}),
     saveMember: (id, member) => request(saveMember, {id, member}),
     loadFamily: (member_id, recursive=true) => request(loadFamily, {member_id, recursive}),

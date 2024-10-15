@@ -13,6 +13,19 @@ def handleRequest(json):
         return globals()[action](**content)
     else: return json
 
+def loadBundle(query, user):
+    family = None
+    member = initMember(query, user)
+    if member and member[ID] == query:
+        member[FAMILIES] = loadFamily(query)
+        family = loadParents(query)
+        children = []
+        for child_id in family[CHILDREN]:
+            if child_id != query:
+                children.append(loadMember(child_id))
+        family[CHILDREN] = children
+    return [member, family]
+
 def initMember(query, user):
     if query:
         member = Members.get(query)

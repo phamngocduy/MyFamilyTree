@@ -273,25 +273,12 @@
         else document.getElementById('sign-out').style.display = 'block';
 
         const id = new URL(location).searchParams.get('q');
-        invoke(api.initMember(id, user.uid), (member) => {
-            if (member != undefined) {
-                if (member.id != id)
-                    return location.replace(`?q=${member.id}`);
-                window.query = member.id;
-                invoke(api.loadFamily(member.id), (families) => {
-                    member.families = families;
-                    app.family.children = [member];
-                    invoke(api.loadParents(member.id), (family) => {
-                        app.family.id = family.id;
-                        app.family.parents = family.parents;
-                        for (const child_id of family.children) {
-                            if (child_id != member.id)
-                                invoke(api.loadMember(child_id),
-                                    (child) => app.family.children.push(child));
-                        }
-                    })
-                });
-            }
+        invoke(api.loadBundle(id, user.uid), ([member, family]) => {
+            if (member.id != id)
+                return location.replace(`?q=${member.id}`);
+            window.query = member.id;
+            app.family = family;
+            app.family.children.push(member);
         });
     });
 </script>
