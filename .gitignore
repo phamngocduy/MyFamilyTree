@@ -9,4 +9,5 @@ backend/gcloud/package
 
 frontend/public
 frontend/config.js
+frontend/.firebase
 frontend/.firebaserc

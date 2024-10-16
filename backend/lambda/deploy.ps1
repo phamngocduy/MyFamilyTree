@@ -1,12 +1,13 @@
-python -m venv lambda\source
-lambda\source\Scripts\activate
-pip install -r libraries.txt
-cp -r lambda\source\lib lambda\python\lib\python3.12
-cp lambda\cygrpc.cpython-312-x86_64-linux-gnu.so lambda\python\lib\python3.12\site-packages\grpc\_cython
-compress-archive lambda\python lambda\python_layer.zip -force
-rd lambda\source -recurse -force
-rd lambda\python -recurse -force
-cp server.py lambda\lambda_function.py
-cp firestore.py lambda\
-cp business.py lambda\
+python -m venv package\source
+package\source\Scripts\activate
+pip install -r ..\library.txt
+cp -r package\source\lib package\python\lib\python3.12
+cp cygrpc.cpython-312-x86_64-linux-gnu.so package\python\lib\python3.12\site-packages\grpc\_cython
+compress-archive package\python package\python_layer.zip -force
+rd package\source -recurse -force
+rd package\python -recurse -force
+cp ..\firebase.json package\
+cp ..\server.py package\lambda_function.py
+cp ..\firestore.py package\
+cp ..\business.py package\
 deactivate
