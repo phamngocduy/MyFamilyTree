@@ -8,6 +8,7 @@ backend/lambda/package
 backend/gcloud/package
 
 frontend/public
-frontend/config.js
 frontend/.firebase
 frontend/.firebaserc
+frontend/config.prod.js
+frontend/deploy.prod.ps1

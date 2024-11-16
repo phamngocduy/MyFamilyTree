@@ -54,7 +54,7 @@ def saveMember(id, member):
     return {}
 
 def loadFamily(member_id, recursive=True):
-    families = [];
+    families = []
     relations = Relations.byParents(member_id)
     for relation in relations.stream():
         family =  {

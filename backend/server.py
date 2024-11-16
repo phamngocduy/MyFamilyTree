@@ -10,7 +10,6 @@ CORS = {
 
 @functions_framework.http
 def flask_handler(request):
-    print(request)
     if request.method == 'OPTIONS':
         return ('', 204, CORS)
     if request.method == 'GET':
