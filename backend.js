@@ -15,7 +15,8 @@ async function request(action, content) {
     try {
         const response = await fetch(backendURL, {
             method: 'POST',
-            body: JSON.stringify({action, content}),
+            body: JSON.stringify({action, content},
+                (k, v) => v === undefined ? null : v),
             headers: {'Content-type': 'application/json'}
         });
         if (response.ok) return await response.json();

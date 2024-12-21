@@ -204,7 +204,7 @@
             <member :member="family.holder" :family="parents" :editable="editable" :dropfunc="this.if(!family.spouse, dropChild)"></member>
             <marry :editable="editable" v-if="family.spouse || editable"></marry>
             <span v-if="family.spouse">
-                <member :member="family.spouse" :family="family" :editable="editable" :dropfunc="this.if(!family.counter && !family.children.length, dropSpouse)"></member>
+                <member :member="family.spouse" :family="family" :editable="editable" :dropfunc="this.if(!family.counter && !family.children.length, dropHolder)"></member>
             </span>
             <span :class="`text-${this.if(primary, 'warning', 'primary')}`" v-if="!family.spouse && editable">
                 <i type="button" @click="addSpouse(family)" class="bi-person-add fs-4"></i>
